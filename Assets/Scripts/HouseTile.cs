@@ -10,6 +10,7 @@ public class HouseTile : MonoBehaviour
 
     public int row { get; private set; }
     public int column { get; private set; }
+    public bool showing;
 
     [SerializeField] private GameObject transparency;
     
@@ -46,11 +47,13 @@ public class HouseTile : MonoBehaviour
                 tileType = TileType.Cat;
                 sprite.sprite = null;
                 Manager.Singleton.SpawnCat(gameObject);
+                grid.spawnTile = gameObject;
                 break;
             case 'M':
                 tileType = TileType.Mouse;
                 sprite.sprite = null;
                 Manager.Singleton.SpawnMouse(gameObject);
+                grid.mouseTiles.Add(gameObject);
                 break;
             case 'H':
                 tileType = TileType.Hole;
@@ -59,6 +62,21 @@ public class HouseTile : MonoBehaviour
             default:
                 break;
         }
+    }
+
+    public IEnumerator Show(float duration)
+    {
+        float time = 0;
+        while (time < duration)
+        {
+            float fraction = Mathf.Min(1, time / duration);
+            float y = Mathf.LerpAngle(90, 0, fraction);
+            transform.eulerAngles = new Vector3(y, 0, 0);
+            time += Time.deltaTime;
+            yield return null;
+        }
+
+        yield return null;
     }
 
     public bool IsWalkable()

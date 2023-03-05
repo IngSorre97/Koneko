@@ -10,6 +10,9 @@ public class Manager : MonoBehaviour
 {
     public static Manager Singleton;
     public bool debug = true;
+    public float rotatingDuration = 1.0f;
+    public float durationBetween = 0.5f;
+    
     [SerializeField] private GameObject gridPrefab;
     private GameObject grid;
     [SerializeField] private GameObject mainCamera;
@@ -20,43 +23,42 @@ public class Manager : MonoBehaviour
     [SerializeField] private GameObject mousePrefab;
     private List<GameObject> _mice = new List<GameObject>();
     
-    private string path = "Assets/Resources/test.txt";
     private Controller _controller;
     private GameState _state = GameState.Menu;
+    private TextAsset _currentLevel;
     
 
     void Start()
     {
         if (Singleton == null) Singleton = this;
         else return;
-        
-        StartCoroutine(WaitScreen());
-
+        if (UIManager.Singleton == null)
+            gameObject.GetComponent<UIManager>().UpdateState(_state);
+        else UIManager.Singleton.UpdateState(_state);
     }
 
-    private IEnumerator WaitScreen()
+    public void SelectedLevel(TextAsset level)
     {
-        yield return new WaitForSeconds(3.0f);
-        _state = GameState.Playing;
-        UIManager.Singleton.UpdateState(_state);
-        StartGrid();
-        yield return null;
+        _currentLevel = level;
+        StartGrid(_currentLevel);
     }
 
 
-    private void StartGrid()
+    private void StartGrid(TextAsset level)
     {
         grid = Instantiate(gridPrefab);
         HouseGrid houseGrid = grid.GetComponent<HouseGrid>();
         if (houseGrid == null) return;
-        StreamReader reader = new StreamReader(path); 
-        houseGrid.ParseFile(reader);
+        houseGrid.ParseFile(level.text);
     }
 
     public void FinishGrid()
     {
+        _state = GameState.Playing;
+        UIManager.Singleton.UpdateState(_state);
         UIManager.Singleton.UpdateMouse(_mice.Count);
         UIManager.Singleton.UpdateMoves(moves);
+        UIManager.Singleton.StartTimeCoroutine();
     }
     
     public void SpawnCat(GameObject houseTile)
@@ -108,8 +110,7 @@ public class Manager : MonoBehaviour
         Destroy(grid);
         _mice.Clear();
         moves = 0;
-        StartGrid();
-
+        StartGrid(_currentLevel);
     }
     
 }

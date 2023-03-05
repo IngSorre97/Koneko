@@ -13,32 +13,72 @@ public class HouseGrid : MonoBehaviour
     [SerializeField] private GameObject tilePrefab;
     
     private List<List<GameObject>> gridLayout = new List<List<GameObject>>();
+    public GameObject spawnTile;
+    public List<GameObject> mouseTiles = new List<GameObject>();
     
 
-    public void ParseFile(StreamReader reader)
+    public void ParseFile(string level)
     {
-        string line;
-        int lineIndex = 0;
-        line = reader.ReadLine();
-        String[] parameters = line.Split(" ");
+        string[] lines = level.Split("\n");
+        String[] parameters = lines[0].Split(" ");
         rows = int.Parse(parameters[0]);
         columns = int.Parse(parameters[1]);
-        while ( (line = reader.ReadLine()) != null)
+        for (int i=1; i<lines.Length; i++)
         {
+            string line = lines[i];
             gridLayout.Add(new List<GameObject>());
-            for (int i = 0; i < line.Length; i++)
+            for (int j = 0; j < line.Length; j++)
             {
-                gridLayout[lineIndex].Add(CreateTile(line[i], lineIndex, i));
+                gridLayout[i-1].Add(CreateTile(line[j], i-1, j));
             }
-            lineIndex++;
         }
 
-        Manager.Singleton.FinishGrid();
+        StartCoroutine(ShowGrid());
     }
 
+    private IEnumerator ShowGrid()
+    {
+        List<GameObject> toBeShown = new List<GameObject>{spawnTile};
+        spawnTile.GetComponent<HouseTile>().showing = true;
+        while (toBeShown.Count > 0)
+        {
+            List<GameObject> newTiles = new List<GameObject>();
+            foreach (GameObject showTile in toBeShown)
+            {
+                StartCoroutine(showTile.GetComponent<HouseTile>().Show(Manager.Singleton.rotatingDuration));
+                showTile.GetComponent<HouseTile>().showing = true;
+                newTiles.AddRange(GetAdjacentTiles(showTile));
+            }
+            toBeShown.Clear();
+            toBeShown.AddRange(newTiles);
+            yield return new WaitForSeconds(Manager.Singleton.durationBetween);
+        }
+        
+        Manager.Singleton.FinishGrid();
+        yield return null;
+    }
+
+    private List<GameObject> GetAdjacentTiles(GameObject tileObject)
+    {
+        List<GameObject> toBeShown = new List<GameObject>();
+        HouseTile startingTile = tileObject.GetComponent<HouseTile>();
+        HouseTile tile;
+        tile = TryMovementBounds(startingTile, Movement.Right);
+        if (tile != null && !tile.showing) toBeShown.Add(tile.gameObject);
+        tile = TryMovementBounds(startingTile, Movement.Left);
+        if (tile != null && !tile.showing) toBeShown.Add(tile.gameObject);
+        tile = TryMovementBounds(startingTile, Movement.Up);
+        if (tile != null && !tile.showing) toBeShown.Add(tile.gameObject);
+        tile = TryMovementBounds(startingTile, Movement.Down);
+        if (tile != null && !tile.showing) toBeShown.Add(tile.gameObject);
+
+        return toBeShown;
+    }
+    
     private GameObject CreateTile(char c, int row, int column)
     {
         GameObject tile = Instantiate(tilePrefab, tilesTransform);
+        tile.transform.Rotate(0, 90, 0);
         tile.transform.localPosition = new Vector3(column, -row, 0);
         tile.name = row + "-" + column;
         tile.GetComponent<HouseTile>().SetTile(this, c, row, column);
