@@ -12,6 +12,8 @@ public class Manager : MonoBehaviour
     public bool debug = true;
     public float rotatingDuration = 1.0f;
     public float durationBetween = 0.5f;
+    public bool mouseMoving;
+    public bool catMoving;
     
     [SerializeField] private GameObject gridPrefab;
     private GameObject grid;
@@ -40,16 +42,16 @@ public class Manager : MonoBehaviour
     public void SelectedLevel(TextAsset level)
     {
         _currentLevel = level;
-        StartGrid(_currentLevel);
+        StartGrid(_currentLevel, false);
     }
 
 
-    private void StartGrid(TextAsset level)
+    private void StartGrid(TextAsset level, bool reset)
     {
         grid = Instantiate(gridPrefab);
         HouseGrid houseGrid = grid.GetComponent<HouseGrid>();
         if (houseGrid == null) return;
-        houseGrid.ParseFile(level.text);
+        houseGrid.ParseFile(level.text, reset);
     }
 
     public void FinishGrid()
@@ -59,6 +61,7 @@ public class Manager : MonoBehaviour
         UIManager.Singleton.UpdateMouse(_mice.Count);
         UIManager.Singleton.UpdateMoves(moves);
         UIManager.Singleton.StartTimeCoroutine();
+        StartCoroutine(followCat());
     }
     
     public void SpawnCat(GameObject houseTile)
@@ -66,6 +69,19 @@ public class Manager : MonoBehaviour
         _cat = Instantiate(catPrefab, houseTile.transform);
         _cat.name = "Cat";
         _cat.GetComponent<Cat>().Set(houseTile.GetComponent<HouseTile>());
+    }
+
+    private IEnumerator followCat()
+    {
+        Vector3 cameraPosition = mainCamera.transform.position;
+        while (true)
+        {
+            cameraPosition.x = _cat.transform.position.x;
+            cameraPosition.y = _cat.transform.position.y;
+            mainCamera.transform.position = cameraPosition;
+            yield return null;
+        }
+            
     }
 
     public void SpawnMouse(GameObject houseTile)
@@ -84,7 +100,7 @@ public class Manager : MonoBehaviour
 
     public bool CanMove()
     {
-        if (_state == GameState.Playing) return true;
+        if (_state == GameState.Playing && !catMoving && !mouseMoving) return true;
         return false;
     }
 
@@ -110,7 +126,12 @@ public class Manager : MonoBehaviour
         Destroy(grid);
         _mice.Clear();
         moves = 0;
-        StartGrid(_currentLevel);
+        StartGrid(_currentLevel, true);
+    }
+    
+    public void OnBackMenu()
+    {
+        //TODO
     }
     
 }

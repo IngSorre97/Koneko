@@ -115,6 +115,7 @@ Transform:
   m_Children:
   - {fileID: 130998272178408429}
   - {fileID: 130998273562091754}
+  - {fileID: 1419836764030426929}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -130,8 +131,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81a817154796bfb40a04b1f473304eca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  miceTransform: {fileID: 1419836764030426929}
   tilesTransform: {fileID: 130998273562091754}
   tilePrefab: {fileID: 8222105701221791961, guid: 791b52a2b064088488683bfd5c1c352c, type: 3}
+  spawnTile: {fileID: 0}
+  mouseTiles: []
 --- !u!1 &130998273562091755
 GameObject:
   m_ObjectHideFlags: 0
@@ -162,4 +166,35 @@ Transform:
   m_Children: []
   m_Father: {fileID: 130998273372402315}
   m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &7018049087591760217
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1419836764030426929}
+  m_Layer: 0
+  m_Name: Mice
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1419836764030426929
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7018049087591760217}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 130998273372402315}
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

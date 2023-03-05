@@ -12,12 +12,13 @@ public class HouseGrid : MonoBehaviour
     [SerializeField] private Transform tilesTransform;
     [SerializeField] private GameObject tilePrefab;
     
+    
     private List<List<GameObject>> gridLayout = new List<List<GameObject>>();
     public GameObject spawnTile;
     public List<GameObject> mouseTiles = new List<GameObject>();
     
 
-    public void ParseFile(string level)
+    public void ParseFile(string level, bool reset)
     {
         string[] lines = level.Split("\n");
         String[] parameters = lines[0].Split(" ");
@@ -29,11 +30,14 @@ public class HouseGrid : MonoBehaviour
             gridLayout.Add(new List<GameObject>());
             for (int j = 0; j < line.Length; j++)
             {
-                gridLayout[i-1].Add(CreateTile(line[j], i-1, j));
+                gridLayout[i-1].Add(CreateTile(line[j], i-1, j, reset));
             }
         }
 
-        StartCoroutine(ShowGrid());
+        if (!reset)
+            StartCoroutine(ShowGrid());
+        else
+            Manager.Singleton.FinishGrid();
     }
 
     private IEnumerator ShowGrid()
@@ -62,23 +66,30 @@ public class HouseGrid : MonoBehaviour
     {
         List<GameObject> toBeShown = new List<GameObject>();
         HouseTile startingTile = tileObject.GetComponent<HouseTile>();
-        HouseTile tile;
-        tile = TryMovementBounds(startingTile, Movement.Right);
-        if (tile != null && !tile.showing) toBeShown.Add(tile.gameObject);
-        tile = TryMovementBounds(startingTile, Movement.Left);
-        if (tile != null && !tile.showing) toBeShown.Add(tile.gameObject);
-        tile = TryMovementBounds(startingTile, Movement.Up);
-        if (tile != null && !tile.showing) toBeShown.Add(tile.gameObject);
-        tile = TryMovementBounds(startingTile, Movement.Down);
-        if (tile != null && !tile.showing) toBeShown.Add(tile.gameObject);
+        
+        if (startingTile.column != columns - 1)
+            if (!gridLayout[startingTile.row][startingTile.column + 1].GetComponent<HouseTile>().showing)
+                toBeShown.Add(gridLayout[startingTile.row][startingTile.column + 1]);
+        
+        if (startingTile.column != 0)
+            if (!gridLayout[startingTile.row][startingTile.column - 1].GetComponent<HouseTile>().showing)
+                toBeShown.Add(gridLayout[startingTile.row][startingTile.column - 1]); 
+        
+        if (startingTile.row != rows - 1)
+            if (!gridLayout[startingTile.row + 1][startingTile.column].GetComponent<HouseTile>().showing)
+                toBeShown.Add(gridLayout[startingTile.row + 1][startingTile.column]); 
+        
+        if (startingTile.row != 0)
+            if (!gridLayout[startingTile.row - 1][startingTile.column].GetComponent<HouseTile>().showing)
+                toBeShown.Add(gridLayout[startingTile.row - 1][startingTile.column]); 
 
         return toBeShown;
     }
     
-    private GameObject CreateTile(char c, int row, int column)
+    private GameObject CreateTile(char c, int row, int column, bool reset)
     {
         GameObject tile = Instantiate(tilePrefab, tilesTransform);
-        tile.transform.Rotate(0, 90, 0);
+        tile.transform.Rotate(0, reset ? 0 : 90, 0);
         tile.transform.localPosition = new Vector3(column, -row, 0);
         tile.name = row + "-" + column;
         tile.GetComponent<HouseTile>().SetTile(this, c, row, column);

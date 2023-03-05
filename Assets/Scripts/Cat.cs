@@ -7,6 +7,7 @@ public class Cat : MonoBehaviour
 {
     private Controller _controller;
     private HouseTile _currentTile;
+    private Movement _currentMovement;
     
     public void Set(HouseTile houseTile)
     {
@@ -17,19 +18,19 @@ public class Cat : MonoBehaviour
 
         _controller.Gameplay.Left.performed += ctx =>
         {
-            Movement(global::Movement.Left);
+            TryMovement(Movement.Left);
         };
         _controller.Gameplay.Right.performed += ctx =>
         {
-            Movement(global::Movement.Right);
+            TryMovement(Movement.Right);
         };
         _controller.Gameplay.Up.performed += ctx =>
         {
-            Movement(global::Movement.Up);
+            TryMovement(Movement.Up);
         };
         _controller.Gameplay.Down.performed += ctx =>
         {
-            Movement(global::Movement.Down);
+            TryMovement(Movement.Down);
         };
         _controller.Gameplay.Menu.performed += ctx =>
         {
@@ -37,28 +38,43 @@ public class Cat : MonoBehaviour
         };
     }
 
-    private void Movement(Movement movement)
+    private void TryMovement(Movement movement)
     {
         if (!Manager.Singleton.CanMove()) return;
         if (_currentTile.TryMovement(movement, this))
             Manager.Singleton.Move();
     }
 
-    public void Move(GameObject houseTile)
+    public void Move(GameObject houseTile, Movement movement)
     {
         _currentTile = houseTile.GetComponent<HouseTile>();
         transform.SetParent(houseTile.transform, true);
-        StartCoroutine(MoveRoutine(0.5f, transform.position, houseTile.transform.position));
+        _currentMovement = movement;
+        StartCoroutine(MoveRoutine(0.25f, transform.position, houseTile.transform.position));
     }
 
     private IEnumerator MoveRoutine(float duration, Vector3 start, Vector3 end)
     {
+        Manager.Singleton.catMoving = true;
+        gameObject.GetComponent<Animator>().SetInteger("Movement", (int)_currentMovement);
         float time = 0;
+        float fraction = Mathf.Min(time / duration, 1.0f);
         while (time < duration)
         {
             time += Time.deltaTime;
-            transform.position = Vector3.Lerp(start, end, time / duration);
+            fraction = Mathf.Min(time / duration, 1);
+            transform.position = Vector3.Lerp(start, end, fraction);
+            yield return null;
         }
+        _currentTile.tileType = TileType.Mouse;
+        transform.SetParent(_currentTile.gameObject.transform);
+        _currentMovement = Movement.None;
+        gameObject.GetComponent<Animator>().SetInteger("Movement", (int)_currentMovement);
+
+        Manager.Singleton.catMoving = false;
+        _currentMovement = Movement.None;
+        gameObject.GetComponent<Animator>().SetInteger("Movement", (int)_currentMovement);
+        
         yield return null;
     }
 

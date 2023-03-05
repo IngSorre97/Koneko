@@ -5,26 +5,46 @@ using UnityEngine;
 public class Mouse : MonoBehaviour
 {
     public HouseTile _currentTile { get; private set; }
+    private Movement _currentMovement;
 
     public void Set(HouseTile houseTile)
     {
         _currentTile = houseTile;
     }
-    public void Move(GameObject houseTile)
+    public void Move(GameObject houseTile, Movement movement)
     {
+        _currentMovement = movement;
+        gameObject.GetComponent<Animator>().SetInteger("Movement", (int)_currentMovement);
         _currentTile = houseTile.GetComponent<HouseTile>();
-        transform.SetParent(houseTile.transform, true);
-        StartCoroutine(MoveRoutine(0.5f, transform.position, houseTile.transform.position));
+        StartCoroutine(MoveRoutine(0.25f, transform.position, houseTile.transform.position));
     }
 
     private IEnumerator MoveRoutine(float duration, Vector3 start, Vector3 end)
     {
+        Manager.Singleton.mouseMoving = true;
         float time = 0;
+        float fraction = Mathf.Min(time / duration, 1.0f);
         while (time < duration)
         {
             time += Time.deltaTime;
-            transform.position = Vector3.Lerp(start, end, time / duration);
+            fraction = Mathf.Min(time / duration, 1);
+            transform.position = Vector3.Lerp(start, end, fraction);
+            yield return null;
         }
+        if (_currentTile.tileType == TileType.Hole)
+        {
+            Manager.Singleton.HideMouse(gameObject);
+        }
+        else
+        {
+            _currentTile.tileType = TileType.Mouse;
+            transform.SetParent(_currentTile.gameObject.transform);
+            _currentMovement = Movement.None;
+            gameObject.GetComponent<Animator>().SetInteger("Movement", (int)_currentMovement);
+        }
+        
+        Manager.Singleton.mouseMoving = false;
+        
         yield return null;
     }
 }

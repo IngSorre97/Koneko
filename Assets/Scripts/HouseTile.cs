@@ -32,40 +32,38 @@ public class HouseTile : MonoBehaviour
         {
             case 'O':
                 tileType = TileType.OutOfBounds;
-                transparency.SetActive(false);
+                sprite.sprite = UIManager.Singleton.outOfBounds;
                 break;
             case 'W':
                 tileType = TileType.Wall;
-                tileBackground.color = Color.black;
-                sprite.sprite = null;
+                sprite.sprite = UIManager.Singleton.wall;
                 break;
             case 'E':
                 tileType = TileType.Empty;
-                sprite.sprite = null;
+                sprite.sprite = UIManager.Singleton.empty;
                 break;
             case 'C':
                 tileType = TileType.Cat;
-                sprite.sprite = null;
+                sprite.sprite = UIManager.Singleton.empty;
                 Manager.Singleton.SpawnCat(gameObject);
                 grid.spawnTile = gameObject;
                 break;
             case 'M':
                 tileType = TileType.Mouse;
-                sprite.sprite = null;
+                sprite.sprite = UIManager.Singleton.empty;
                 Manager.Singleton.SpawnMouse(gameObject);
                 grid.mouseTiles.Add(gameObject);
                 break;
-            case 'H':
-                tileType = TileType.Hole;
-                sprite.color = Color.red;
-                break;
             default:
+                tileType = TileType.Hole;
+                sprite.sprite = UIManager.Singleton.hole;
                 break;
         }
     }
 
     public IEnumerator Show(float duration)
     {
+        yield return new WaitForSeconds(Random.Range(0f, 1f) * 0.5f);
         float time = 0;
         while (time < duration)
         {
@@ -93,7 +91,7 @@ public class HouseTile : MonoBehaviour
         {
             case TileType.Empty:
                 targetTile.tileType = TileType.Cat;
-                cat.Move(targetTile.gameObject);
+                cat.Move(targetTile.gameObject, movement);
                 tileType = TileType.Empty;
                 return true;
             case TileType.Mouse:
@@ -101,18 +99,11 @@ public class HouseTile : MonoBehaviour
                 HouseTile mouseTargetTile = grid.TryMovementBounds(targetTile, movement);
                 if (!mouseTargetTile) return false;
                 if (!mouseTargetTile.CanMoveMouse()) return false;
-                if (mouseTargetTile.tileType == TileType.Hole)
-                {
-                    Manager.Singleton.HideMouse(mouse);
-                }
-                else
-                {
-                    mouseTargetTile.tileType = TileType.Mouse;
-                    mouse.GetComponent<Mouse>().Move(mouseTargetTile.gameObject);
-                }
+                mouse.GetComponent<Mouse>().Move(mouseTargetTile.gameObject, movement);
                 targetTile.tileType = TileType.Cat;
-                cat.Move(targetTile.gameObject);
+                cat.Move(targetTile.gameObject, movement);
                 tileType = TileType.Empty;
+                UIManager.Singleton.Push();
                 return true;
         }
         
