@@ -7,6 +7,7 @@ public class Cat : MonoBehaviour
 {
     private Controller _controller;
     private HouseTile _currentTile;
+    [SerializeField] private ParticleSystem resetDust;
     private Movement _currentMovement;
     
     public void Set(HouseTile houseTile)
@@ -81,5 +82,11 @@ public class Cat : MonoBehaviour
     private void OnDestroy()
     {
         _controller.Disable();
+    }
+
+    public void MakeParticles()
+    {
+        Debug.Log("Playing parcticle eff");
+        resetDust.Play();
     }
 }

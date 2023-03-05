@@ -54,10 +54,14 @@ public class HouseTile : MonoBehaviour
                 Manager.Singleton.SpawnMouse(gameObject);
                 grid.mouseTiles.Add(gameObject);
                 break;
-            default:
+            case char ch when (ch >= '1'  && ch <='4'):
                 tileType = TileType.Hole;
                 sprite.sprite = UIManager.Singleton.hole;
                 break;
+            default:
+                Debug.Log($"Character not found {c}");
+                break;
+                
         }
     }
 

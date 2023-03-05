@@ -16,11 +16,14 @@ public class UIManager : MonoBehaviour
 
     [SerializeField] private GameObject menuScreen;
     [SerializeField] private GameObject levelSelection;
+    [SerializeField] private GameObject levelSelectionPanel;
+    [SerializeField] private GameObject levelSelectionContent;
     [SerializeField] private GameObject counters;
     [SerializeField] private GameObject victoryScreen;
     [SerializeField] private TextMeshProUGUI miceLeft;
     [SerializeField] private TextMeshProUGUI movesCounter;
     [SerializeField] private TextMeshProUGUI timeCounter;
+    [SerializeField] private TextMeshProUGUI gameStats;
     [SerializeField] private float fadingDuration = 5.0f;
     [SerializeField] private Transform levelsContent;
     [SerializeField] private GameObject placeholderPrefab;
@@ -39,7 +42,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] private AudioClip victory;
     [SerializeField] private AudioClip push;
     [SerializeField] private AudioClip reset;
-    
+    private TextAsset[] levels;
+
+    private Dictionary<TextAsset, Placeholder> _levelPlaceholders = new Dictionary<TextAsset, Placeholder>();
 
     public Sprite outOfBounds;
     public Sprite wall;
@@ -53,13 +58,13 @@ public class UIManager : MonoBehaviour
         if (Singleton == null) Singleton = this;
         else return;
         menuScreen.SetActive(true);
-        levelSelection.SetActive(true);
     }
 
     public void OnLevelClicked(Placeholder placeholder)
     {
         Manager.Singleton.SelectedLevel(placeholder.level);
-        levelSelection.SetActive(false);
+        levelSelectionPanel.SetActive(false);
+        
         Button();
     }
 
@@ -68,15 +73,29 @@ public class UIManager : MonoBehaviour
         switch (state)
         {
             case GameState.Menu:
-                StartCoroutine(FadingMenu(fadingDuration));
+                levelSelectionPanel.SetActive(true);
+                if (levels == null)
+                {
+                    StartCoroutine(FadingMenu(fadingDuration));
+                    levelSelectionContent.SetActive(false);
+                }
+                else
+                {
+                    SetRecords();
+                }
+                
+                victoryScreen.SetActive(false);
                 break;
             case GameState.Playing:
                 counters.SetActive(true);
+                victoryScreen.SetActive(false);
                 break;
             case GameState.Victory:
                 counters.SetActive(false);
                 victoryScreen.SetActive(true);
                 StopCoroutine(timeCoroutine);
+                timeCoroutine = null;
+                gameStats.text = $"Moves: {Manager.Singleton.GetMoves()}   Time:{timeCounter.text}";
                 soundEffects.clip = victory;
                 soundEffects.Play();
                 break;
@@ -90,7 +109,8 @@ public class UIManager : MonoBehaviour
         backgroundMusic.clip = menu;
         backgroundMusic.Play();
         float time = 0;
-        StartCoroutine(FadingLevels(duration*0.67f));
+        
+        StartCoroutine(FadingLevels(duration*0.90f));
         while (time < duration)
         {
             float fraction = Mathf.Min(1, time / duration);
@@ -103,20 +123,35 @@ public class UIManager : MonoBehaviour
         yield return null;
     }
 
+    private void SetRecords()
+    {
+        foreach(TextAsset lvl in levels)
+        {
+            _levelPlaceholders[lvl].SetRecordString( RecordManager.Singleton.getRecordString(lvl));
+        }
+    }
+
     private IEnumerator FadingLevels(float wait)
     {
         yield return new WaitForSeconds(wait);
-        Object[] objects = Resources.LoadAll("Levels/");
-        TextAsset[] levels = new TextAsset[objects.Length];
-        for (int i=0; i<objects.Length; i++)
-            levels[i] = (TextAsset) objects[i];
 
-        levels.OrderBy(level => int.Parse(level.name));
-        foreach (TextAsset level in levels)
+        levelSelectionContent.SetActive(true);
+        if (levels == null)
         {
-            GameObject placeholder = Instantiate(placeholderPrefab, levelsContent);
-            placeholder.GetComponent<Placeholder>().level = level;
-            placeholder.GetComponent<Placeholder>().levelName.text = level.name;
+            Object[] objects = Resources.LoadAll("Levels/");
+            levels = new TextAsset[objects.Length];
+            for (int i = 0; i < objects.Length; i++)
+                levels[i] = (TextAsset)objects[i];
+
+            levels.OrderBy(level => level.name);
+            foreach (TextAsset level in levels)
+            {
+                GameObject placeholder = Instantiate(placeholderPrefab, levelsContent);
+                
+                placeholder.GetComponent<Placeholder>().level = level;
+                placeholder.GetComponent<Placeholder>().levelName.text = level.name;
+                _levelPlaceholders[level] = placeholder.GetComponent<Placeholder>();
+            }
         }
     }
 
@@ -157,10 +192,11 @@ public class UIManager : MonoBehaviour
             float minutesFloat = time / 60.0f;
             int minutes = (int) minutesFloat;
             int seconds = time - minutes * 60;
-            timeCounter.text = $"{minutes:000}:{seconds:00}s";
+            timeCounter.text = $"{minutes:000}m:{seconds:00}s";
             yield return new WaitForSeconds(1.0f);
         }
     }
+
     
     public void UpdateMoves(int amount)
     {
@@ -172,10 +208,21 @@ public class UIManager : MonoBehaviour
         miceLeft.text = amount.ToString();
     }
 
-    public void Reset()
+    public void Reset(bool nextLevel)
     {
         movesCounter.text = "0";
         miceLeft.text = "0";
+        
+        if (nextLevel )
+        {
+            timeCounter.text = "00:00";
+            if(timeCoroutine != null)
+            {
+                StopCoroutine(timeCoroutine);
+                timeCoroutine = null;
+            }
+            
+        }
         soundEffects.clip = reset;
         soundEffects.Play();
     }
@@ -191,5 +238,25 @@ public class UIManager : MonoBehaviour
         soundEffects.clip = button;
         soundEffects.Play();
     }
-    
+
+
+    public void OnClickNextLevel()
+    {
+        victoryScreen.SetActive(false);
+        int i;
+        for (i=0;i < levels.Length;i++)
+        {
+            if(levels[i] == Manager.Singleton._currentLevel){
+                break;
+            }
+        }
+        Manager.Singleton.SelectedLevel(levels[(i + 1) % levels.Length]);
+
+    }
+
+    public string GetTime()
+    {
+        return timeCounter.text;
+    }
+
 }

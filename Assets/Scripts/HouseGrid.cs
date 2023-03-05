@@ -24,11 +24,11 @@ public class HouseGrid : MonoBehaviour
         String[] parameters = lines[0].Split(" ");
         rows = int.Parse(parameters[0]);
         columns = int.Parse(parameters[1]);
-        for (int i=1; i<lines.Length; i++)
+        for (int i=1; i<rows+1; i++)
         {
             string line = lines[i];
             gridLayout.Add(new List<GameObject>());
-            for (int j = 0; j < line.Length; j++)
+            for (int j = 0; j < columns; j++)
             {
                 gridLayout[i-1].Add(CreateTile(line[j], i-1, j, reset));
             }
@@ -44,47 +44,20 @@ public class HouseGrid : MonoBehaviour
     {
         List<GameObject> toBeShown = new List<GameObject>{spawnTile};
         spawnTile.GetComponent<HouseTile>().showing = true;
-        while (toBeShown.Count > 0)
-        {
-            List<GameObject> newTiles = new List<GameObject>();
-            foreach (GameObject showTile in toBeShown)
-            {
-                StartCoroutine(showTile.GetComponent<HouseTile>().Show(Manager.Singleton.rotatingDuration));
-                showTile.GetComponent<HouseTile>().showing = true;
-                newTiles.AddRange(GetAdjacentTiles(showTile));
-            }
-            toBeShown.Clear();
-            toBeShown.AddRange(newTiles);
-            yield return new WaitForSeconds(Manager.Singleton.durationBetween);
-        }
         
+        for (int i=0;i < rows;i++)
+        {
+            for (int j = 0; j < columns; j++)
+            {
+                StartCoroutine(gridLayout[i][j].GetComponent<HouseTile>().Show(Manager.Singleton.rotatingDuration));
+            }
+        }
+
+        yield return new WaitForSeconds(Manager.Singleton.rotatingDuration + 0.5f);
         Manager.Singleton.FinishGrid();
         yield return null;
     }
 
-    private List<GameObject> GetAdjacentTiles(GameObject tileObject)
-    {
-        List<GameObject> toBeShown = new List<GameObject>();
-        HouseTile startingTile = tileObject.GetComponent<HouseTile>();
-        
-        if (startingTile.column != columns - 1)
-            if (!gridLayout[startingTile.row][startingTile.column + 1].GetComponent<HouseTile>().showing)
-                toBeShown.Add(gridLayout[startingTile.row][startingTile.column + 1]);
-        
-        if (startingTile.column != 0)
-            if (!gridLayout[startingTile.row][startingTile.column - 1].GetComponent<HouseTile>().showing)
-                toBeShown.Add(gridLayout[startingTile.row][startingTile.column - 1]); 
-        
-        if (startingTile.row != rows - 1)
-            if (!gridLayout[startingTile.row + 1][startingTile.column].GetComponent<HouseTile>().showing)
-                toBeShown.Add(gridLayout[startingTile.row + 1][startingTile.column]); 
-        
-        if (startingTile.row != 0)
-            if (!gridLayout[startingTile.row - 1][startingTile.column].GetComponent<HouseTile>().showing)
-                toBeShown.Add(gridLayout[startingTile.row - 1][startingTile.column]); 
-
-        return toBeShown;
-    }
     
     private GameObject CreateTile(char c, int row, int column, bool reset)
     {
