@@ -74,7 +74,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.8018868, g: 0.8018868, b: 0.8018868, a: 1}
+  m_Color: {r: 0.89411765, g: 0.85882354, b: 0.8392157, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -131,7 +131,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81a817154796bfb40a04b1f473304eca, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  miceTransform: {fileID: 1419836764030426929}
   tilesTransform: {fileID: 130998273562091754}
   tilePrefab: {fileID: 8222105701221791961, guid: 791b52a2b064088488683bfd5c1c352c, type: 3}
   spawnTile: {fileID: 0}

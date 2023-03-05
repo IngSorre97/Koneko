@@ -19,6 +19,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject levelSelectionPanel;
     [SerializeField] private GameObject levelSelectionContent;
     [SerializeField] private GameObject counters;
+    [SerializeField] private TextMeshProUGUI levelName;
     [SerializeField] private GameObject victoryScreen;
     [SerializeField] private TextMeshProUGUI miceLeft;
     [SerializeField] private TextMeshProUGUI movesCounter;
@@ -27,6 +28,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private float fadingDuration = 5.0f;
     [SerializeField] private Transform levelsContent;
     [SerializeField] private GameObject placeholderPrefab;
+
+    [SerializeField] private GameObject creditsScreen;
 
     [Header("Audio clips")]
     [SerializeField] private AudioSource backgroundMusic;
@@ -38,6 +41,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private AudioClip level4;
     [SerializeField] private AudioClip level5;
     [SerializeField] private AudioClip button;
+    [SerializeField] private AudioClip voice;
     [SerializeField] private AudioClip start;
     [SerializeField] private AudioClip victory;
     [SerializeField] private AudioClip push;
@@ -68,6 +72,12 @@ public class UIManager : MonoBehaviour
         Button();
     }
 
+    public void OnCreditClicked()
+    {
+        creditsScreen.SetActive(!creditsScreen.activeSelf);
+        Button();
+    }
+
     public void UpdateState(GameState state)
     {
         switch (state)
@@ -88,6 +98,7 @@ public class UIManager : MonoBehaviour
                 break;
             case GameState.Playing:
                 counters.SetActive(true);
+                levelName.text = Manager.Singleton._currentLevel.name;
                 victoryScreen.SetActive(false);
                 break;
             case GameState.Victory:
@@ -105,7 +116,13 @@ public class UIManager : MonoBehaviour
     private IEnumerator FadingMenu(float duration)
     {
         CanvasGroup canvasGroup = menuScreen.GetComponent<CanvasGroup>();
-        yield return new WaitForSeconds(2.0f);
+        yield return new WaitForSeconds(0.5f);
+        soundEffects.clip = button;
+        soundEffects.Play();
+        yield return new WaitForSeconds(0.5f);
+        //soundEffects.clip = voice;
+        //soundEffects.Play();
+        yield return new WaitForSeconds(1.0f);
         backgroundMusic.clip = menu;
         backgroundMusic.Play();
         float time = 0;

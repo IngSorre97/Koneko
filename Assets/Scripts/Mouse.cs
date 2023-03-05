@@ -6,6 +6,7 @@ public class Mouse : MonoBehaviour
 {
     public HouseTile _currentTile { get; private set; }
     private Movement _currentMovement;
+    [SerializeField] private ParticleSystem holeDust;
 
     public void Set(HouseTile houseTile)
     {
@@ -33,7 +34,7 @@ public class Mouse : MonoBehaviour
         }
         if (_currentTile.tileType == TileType.Hole)
         {
-            Manager.Singleton.HideMouse(gameObject);
+            StartCoroutine(particles());
         }
         else
         {
@@ -46,5 +47,13 @@ public class Mouse : MonoBehaviour
         Manager.Singleton.mouseMoving = false;
         
         yield return null;
+    }
+
+    private IEnumerator particles()
+    {
+        holeDust.Play();
+        gameObject.GetComponent<SpriteRenderer>().enabled = false;
+        yield return new WaitForSeconds(1.0f);
+        Manager.Singleton.HideMouse(gameObject);
     }
 }

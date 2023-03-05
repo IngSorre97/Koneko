@@ -212,7 +212,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: amazeing
+  m_text: 07 Hotstuff
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 22027b6a676c6564b8c35acc0cd079c5, type: 2}
   m_sharedMaterial: {fileID: 849823840296308182, guid: 22027b6a676c6564b8c35acc0cd079c5, type: 2}
@@ -239,13 +239,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 22
-  m_fontSizeBase: 22
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 1
+  m_fontStyle: 4
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
