@@ -24,6 +24,10 @@ public class FlexibleGrid : LayoutGroup
     public bool fitX;
     public bool fitY;
 
+    public bool applyAspectRatio;
+    public Vector2 aspectRatio;
+    
+
     public override void CalculateLayoutInputHorizontal()
     {
         base.CalculateLayoutInputHorizontal();
@@ -84,6 +88,18 @@ public class FlexibleGrid : LayoutGroup
 
             var xPos = (cellSize.x * columnCount) + (spacing.x * columnCount) + padding.left;
             var yPos = (cellSize.y * rowCount) + (spacing.y * rowCount) + padding.top;
+
+            if (applyAspectRatio && aspectRatio.x != 0 && aspectRatio.y != 0)
+            {
+                if (aspectRatio.x < aspectRatio.y)
+                {
+                    cellSize.x = cellSize.y / aspectRatio.y * aspectRatio.x;
+                }
+                else
+                {
+                    cellSize.y = cellSize.x / aspectRatio.x * aspectRatio.y;
+                }
+            }
             
             SetChildAlongAxis(item, 0, xPos, cellSize.x);
             SetChildAlongAxis(item, 1, yPos, cellSize.y);
