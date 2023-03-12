@@ -86,20 +86,26 @@ public class FlexibleGrid : LayoutGroup
 
             var item = rectChildren[i];
 
-            var xPos = (cellSize.x * columnCount) + (spacing.x * columnCount) + padding.left;
-            var yPos = (cellSize.y * rowCount) + (spacing.y * rowCount) + padding.top;
-
+            Vector2 aspectFraction;
+            aspectFraction.x = cellSize.x / aspectRatio.x;
+            aspectFraction.y = cellSize.y / aspectRatio.y;
             if (applyAspectRatio && aspectRatio.x != 0 && aspectRatio.y != 0)
             {
-                if (aspectRatio.x < aspectRatio.y)
+                if (aspectFraction.x < aspectFraction.y)
                 {
-                    cellSize.x = cellSize.y / aspectRatio.y * aspectRatio.x;
+                    cellSize.y = aspectRatio.y * aspectFraction.x;
                 }
                 else
                 {
-                    cellSize.y = cellSize.x / aspectRatio.x * aspectRatio.y;
+                    cellSize.x = aspectRatio.x * aspectFraction.y;
                 }
             }
+            
+            float xRemain = parentWidth - (cellSize.x + spacing.x) * columns - padding.left - padding.left;
+            var xPos = (cellSize.x * columnCount) + (spacing.x * columnCount) + padding.left + xRemain/2;
+            var yPos = (cellSize.y * rowCount) + (spacing.y * rowCount) + padding.top;
+
+            
             
             SetChildAlongAxis(item, 0, xPos, cellSize.x);
             SetChildAlongAxis(item, 1, yPos, cellSize.y);

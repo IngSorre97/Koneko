@@ -6,39 +6,33 @@ using UnityEngine.UI;
 
 public class AnimatedUI : MonoBehaviour
 {
-    [SerializeField] private Sprite first;
-    [SerializeField] private Sprite second;
+    [SerializeField] private List<Sprite> sprites = new List<Sprite>();
 
-    private int current = 1;
+    [SerializeField] private float frameDuration = 0.5f;
+
+    private int _current = 0;
     private Coroutine _coroutine;
 
     // Update is called once per frame
     void OnEnable()
     {
-        _coroutine = StartCoroutine(animation());
+        _coroutine = StartCoroutine(Animation());
     }
 
     private void OnDisable()
     {
-        StopCoroutine(animation());
+        StopCoroutine(Animation());
         _coroutine = null;
     }
 
-    private IEnumerator animation()
+    private IEnumerator Animation()
     {
         while (true)
         {
-            if (current == 1)
-            {
-                gameObject.GetComponent<Image>().sprite = first;
-                current = 2;
-            }
-            else
-            {
-                gameObject.GetComponent<Image>().sprite = second;
-                current = 1;
-            }
-            yield return new WaitForSeconds(0.5f);
+            _current = (_current + 1) % sprites.Count;
+            gameObject.GetComponent<Image>().sprite = sprites[_current];
+            
+            yield return new WaitForSeconds(frameDuration);
         }
     }
 }

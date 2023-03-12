@@ -14,23 +14,34 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager Singleton;
 
-    [SerializeField] private GameObject menuScreen;
-    [SerializeField] private GameObject levelSelection;
-    [SerializeField] private GameObject levelSelectionPanel;
-    [SerializeField] private GameObject levelSelectionContent;
-    [SerializeField] private GameObject counters;
+    [Header("Parameters")]
+    [SerializeField] private float fadingDuration = 3.0f;
+    
+    [Header("Menu canvases")]
+    [SerializeField] private GameObject titlePanel;
+    [SerializeField] private GameObject menuPanel;
+    [SerializeField] private GameObject introductionScreen;
+    [SerializeField] private GameObject levelSelectionScreen;
+    [SerializeField] private GameObject creditsScreen;
+    
+    
+    [SerializeField] private GameObject victoryPanel;
+    
+    
+    
+    [SerializeField] private Transform levelsContent;
+    [SerializeField] private GameObject placeholderPrefab;
+
+    
+    
+    [Header("Gameplay canvases")]
+    [SerializeField] private GameObject countersPanel;
     [SerializeField] private TextMeshProUGUI levelName;
-    [SerializeField] private GameObject victoryScreen;
     [SerializeField] private TextMeshProUGUI miceLeft;
     [SerializeField] private TextMeshProUGUI movesCounter;
     [SerializeField] private TextMeshProUGUI timeCounter;
     [SerializeField] private TextMeshProUGUI gameStats;
-    [SerializeField] private float fadingDuration = 5.0f;
-    [SerializeField] private Transform levelsContent;
-    [SerializeField] private GameObject placeholderPrefab;
-
-    [SerializeField] private GameObject creditsScreen;
-
+    
     [Header("Audio clips")]
     [SerializeField] private AudioSource backgroundMusic;
     [SerializeField] private AudioSource soundEffects;
@@ -46,64 +57,48 @@ public class UIManager : MonoBehaviour
     [SerializeField] private AudioClip victory;
     [SerializeField] private AudioClip push;
     [SerializeField] private AudioClip reset;
-    private TextAsset[] levels;
-
-    private Dictionary<TextAsset, Placeholder> _levelPlaceholders = new Dictionary<TextAsset, Placeholder>();
-
+    
+    [Header("Sprites")]
     public Sprite outOfBounds;
     public Sprite wall;
     public Sprite empty;
     public Sprite hole;
 
+    private TextAsset[] levels;
+    private Dictionary<TextAsset, Placeholder> _levelPlaceholders = new Dictionary<TextAsset, Placeholder>();
     private Coroutine timeCoroutine;
     
     void Awake()
     {
         if (Singleton == null) Singleton = this;
         else return;
-        menuScreen.SetActive(true);
+        titlePanel.SetActive(true);
+        menuPanel.SetActive(true);
     }
-
-    public void OnLevelClicked(Placeholder placeholder)
-    {
-        Manager.Singleton.SelectedLevel(placeholder.level);
-        levelSelectionPanel.SetActive(false);
-        
-        Button();
-    }
-
-    public void OnCreditClicked()
-    {
-        creditsScreen.SetActive(!creditsScreen.activeSelf);
-        Button();
-    }
-
+    
     public void UpdateState(GameState state)
     {
         switch (state)
         {
             case GameState.Menu:
-                levelSelectionPanel.SetActive(true);
                 if (levels == null)
                 {
-                    StartCoroutine(FadingMenu(fadingDuration));
-                    levelSelectionContent.SetActive(false);
+                    StartCoroutine(FadingMenu());
                 }
                 else
                 {
+                    victoryPanel.SetActive(false);
                     SetRecords();
                 }
-                
-                victoryScreen.SetActive(false);
                 break;
             case GameState.Playing:
-                counters.SetActive(true);
+                countersPanel.SetActive(true);
                 levelName.text = Manager.Singleton._currentLevel.name;
-                victoryScreen.SetActive(false);
+                victoryPanel.SetActive(false);
                 break;
             case GameState.Victory:
-                counters.SetActive(false);
-                victoryScreen.SetActive(true);
+                countersPanel.SetActive(false);
+                victoryPanel.SetActive(true);
                 StopCoroutine(timeCoroutine);
                 timeCoroutine = null;
                 gameStats.text = $"Moves: {Manager.Singleton.GetMoves()}   Time:{timeCounter.text}";
@@ -111,33 +106,6 @@ public class UIManager : MonoBehaviour
                 soundEffects.Play();
                 break;
         }
-    }
-
-    private IEnumerator FadingMenu(float duration)
-    {
-        CanvasGroup canvasGroup = menuScreen.GetComponent<CanvasGroup>();
-        yield return new WaitForSeconds(0.5f);
-        soundEffects.clip = button;
-        soundEffects.Play();
-        yield return new WaitForSeconds(0.5f);
-        //soundEffects.clip = voice;
-        //soundEffects.Play();
-        yield return new WaitForSeconds(1.0f);
-        backgroundMusic.clip = menu;
-        backgroundMusic.Play();
-        float time = 0;
-        
-        StartCoroutine(FadingLevels(duration*0.90f));
-        while (time < duration)
-        {
-            float fraction = Mathf.Min(1, time / duration);
-            canvasGroup.alpha = 1 - fraction;
-            time += Time.deltaTime;
-            yield return null;
-        }
-        menuScreen.SetActive(false);
-
-        yield return null;
     }
 
     private void SetRecords()
@@ -148,27 +116,76 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    private IEnumerator FadingLevels(float wait)
+    //******************************************************************************************************************
+    //*** Button functions
+    public void OnCreditClicked()
     {
-        yield return new WaitForSeconds(wait);
+        creditsScreen.SetActive(!creditsScreen.activeSelf);
+        Button();
+    }
+    
+    public void OnPlayClicked()
+    {
+        introductionScreen.SetActive(false);
+        LoadLevels();
+        Button();
+    }
+    
+    public void OnLevelClicked(Placeholder placeholder)
+    {
+        Manager.Singleton.SelectedLevel(placeholder.level);
+        menuPanel.SetActive(false);
+        levelSelectionScreen.SetActive(false);
+        
+        Button();
+    }
+    
+    //******************************************************************************************************************
+    //*** Coroutines
+    
+    private IEnumerator FadingMenu()
+    {
+        CanvasGroup canvasGroup = titlePanel.GetComponent<CanvasGroup>();
+        yield return new WaitForSeconds(1.0f);
+        soundEffects.clip = button;
+        soundEffects.Play();
+        yield return new WaitForSeconds(1.0f);
+        backgroundMusic.clip = menu;
+        backgroundMusic.Play();
 
-        levelSelectionContent.SetActive(true);
-        if (levels == null)
+        introductionScreen.SetActive(true);
+        
+        float time = 0;
+        while (time < fadingDuration)
         {
-            Object[] objects = Resources.LoadAll("Levels/");
-            levels = new TextAsset[objects.Length];
-            for (int i = 0; i < objects.Length; i++)
-                levels[i] = (TextAsset)objects[i];
+            float fraction = Mathf.Min(1, time / fadingDuration);
+            canvasGroup.alpha = 1 - fraction;
+            time += Time.deltaTime;
+            yield return null;
+        }
+        
+        titlePanel.SetActive(false);
+        yield return null;
+    }
 
-            levels.OrderBy(level => level.name);
-            foreach (TextAsset level in levels)
-            {
-                GameObject placeholder = Instantiate(placeholderPrefab, levelsContent);
+    private void LoadLevels()
+    {
+        levelSelectionScreen.SetActive(true);
+        if (levels != null) return;
+        
+        Object[] objects = Resources.LoadAll("Levels/");
+        levels = new TextAsset[objects.Length];
+        for (int i = 0; i < objects.Length; i++)
+            levels[i] = (TextAsset)objects[i];
+
+        levels.OrderBy(level => level.name);
+        foreach (TextAsset level in levels)
+        {
+            GameObject placeholder = Instantiate(placeholderPrefab, levelsContent);
                 
-                placeholder.GetComponent<Placeholder>().level = level;
-                placeholder.GetComponent<Placeholder>().levelName.text = level.name;
-                _levelPlaceholders[level] = placeholder.GetComponent<Placeholder>();
-            }
+            placeholder.GetComponent<Placeholder>().level = level;
+            placeholder.GetComponent<Placeholder>().levelName.text = level.name;
+            _levelPlaceholders[level] = placeholder.GetComponent<Placeholder>();
         }
     }
 
@@ -213,6 +230,21 @@ public class UIManager : MonoBehaviour
             yield return new WaitForSeconds(1.0f);
         }
     }
+    
+    public void OnClickNextLevel()
+    {
+        victoryPanel.SetActive(false);
+        int i;
+        for (i=0;i < levels.Length;i++)
+        {
+            if(levels[i] == Manager.Singleton._currentLevel){
+                break;
+            }
+        }
+        Manager.Singleton.SelectedLevel(levels[(i + 1) % levels.Length]);
+
+    }
+
 
     
     public void UpdateMoves(int amount)
@@ -255,22 +287,7 @@ public class UIManager : MonoBehaviour
         soundEffects.clip = button;
         soundEffects.Play();
     }
-
-
-    public void OnClickNextLevel()
-    {
-        victoryScreen.SetActive(false);
-        int i;
-        for (i=0;i < levels.Length;i++)
-        {
-            if(levels[i] == Manager.Singleton._currentLevel){
-                break;
-            }
-        }
-        Manager.Singleton.SelectedLevel(levels[(i + 1) % levels.Length]);
-
-    }
-
+    
     public string GetTime()
     {
         return timeCounter.text;
