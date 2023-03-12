@@ -7,8 +7,11 @@ using UnityEngine.InputSystem.Controls;
 
 public class HouseGrid : MonoBehaviour
 {
-    private int rows;
-    private int columns;
+    private int _rows;
+    private int _columns;
+    private int _bestMoves;
+    private int _goodMoves;
+    
     [SerializeField] private Transform tilesTransform;
     [SerializeField] private GameObject tilePrefab;
     
@@ -22,13 +25,16 @@ public class HouseGrid : MonoBehaviour
     {
         string[] lines = level.Split("\n");
         String[] parameters = lines[0].Split(" ");
-        rows = int.Parse(parameters[0]);
-        columns = int.Parse(parameters[1]);
-        for (int i=1; i<rows+1; i++)
+        _rows = int.Parse(parameters[0]);
+        _columns = int.Parse(parameters[1]);
+        _bestMoves = int.Parse(parameters[2]);
+        _goodMoves = int.Parse(parameters[3]);
+        
+        for (int i=1; i<_rows+1; i++)
         {
             string line = lines[i];
             gridLayout.Add(new List<GameObject>());
-            for (int j = 0; j < columns; j++)
+            for (int j = 0; j < _columns; j++)
             {
                 gridLayout[i-1].Add(CreateTile(line[j], i-1, j, reset));
             }
@@ -45,9 +51,9 @@ public class HouseGrid : MonoBehaviour
         List<GameObject> toBeShown = new List<GameObject>{spawnTile};
         spawnTile.GetComponent<HouseTile>().showing = true;
         
-        for (int i=0;i < rows;i++)
+        for (int i=0;i < _rows;i++)
         {
-            for (int j = 0; j < columns; j++)
+            for (int j = 0; j < _columns; j++)
             {
                 StartCoroutine(gridLayout[i][j].GetComponent<HouseTile>().Show(Manager.Singleton.rotatingDuration));
             }
@@ -75,7 +81,7 @@ public class HouseGrid : MonoBehaviour
         switch (movement)
         {
             case Movement.Right:
-                if (houseTile.column == columns - 1) return null;
+                if (houseTile.column == _columns - 1) return null;
                 return gridLayout[houseTile.row][houseTile.column + 1].GetComponent<HouseTile>();
 
             case Movement.Left:
@@ -83,7 +89,7 @@ public class HouseGrid : MonoBehaviour
                 return gridLayout[houseTile.row][houseTile.column - 1].GetComponent<HouseTile>();
             
             case Movement.Up:
-                if (houseTile.row == rows - 1) return null;
+                if (houseTile.row == _rows - 1) return null;
                 return gridLayout[houseTile.row + 1][houseTile.column].GetComponent<HouseTile>();
             
             case Movement.Down:

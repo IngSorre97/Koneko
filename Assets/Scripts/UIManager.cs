@@ -7,6 +7,7 @@ using Enums;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UI;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
@@ -15,7 +16,7 @@ public class UIManager : MonoBehaviour
     public static UIManager Singleton;
 
     [Header("Parameters")]
-    [SerializeField] private float fadingDuration = 3.0f;
+    [SerializeField] private float fadingDuration = 2.0f;
     
     [Header("Menu canvases")]
     [SerializeField] private GameObject titlePanel;
@@ -24,8 +25,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject levelSelectionScreen;
     [SerializeField] private GameObject creditsScreen;
     
-    
-    [SerializeField] private GameObject victoryPanel;
     
     
     
@@ -41,6 +40,8 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI movesCounter;
     [SerializeField] private TextMeshProUGUI timeCounter;
     [SerializeField] private TextMeshProUGUI gameStats;
+    [SerializeField] private GameObject victoryPanel;
+    [SerializeField] private Button nextLevel;
     
     [Header("Audio clips")]
     [SerializeField] private AudioSource backgroundMusic;
@@ -64,7 +65,10 @@ public class UIManager : MonoBehaviour
     public Sprite empty;
     public Sprite hole;
 
-    private TextAsset[] levels;
+    private int _maxPages;
+    private int _currentPage;
+    private int _currentLevel;
+    private List<List<TextAsset>> _levels = null;
     private Dictionary<TextAsset, Placeholder> _levelPlaceholders = new Dictionary<TextAsset, Placeholder>();
     private Coroutine timeCoroutine;
     
@@ -81,15 +85,19 @@ public class UIManager : MonoBehaviour
         switch (state)
         {
             case GameState.Menu:
-                if (levels == null)
+                if (_levels == null)
                 {
                     StartCoroutine(FadingMenu());
+                    GenerateLevels();
                 }
                 else
                 {
                     victoryPanel.SetActive(false);
+                    menuPanel.SetActive(true);
                     SetRecords();
+                    LoadLevels(_currentPage);
                 }
+
                 break;
             case GameState.Playing:
                 countersPanel.SetActive(true);
@@ -99,6 +107,8 @@ public class UIManager : MonoBehaviour
             case GameState.Victory:
                 countersPanel.SetActive(false);
                 victoryPanel.SetActive(true);
+                if (_currentLevel == _levels[_currentPage].Count)
+                    nextLevel.gameObject.SetActive(false);
                 StopCoroutine(timeCoroutine);
                 timeCoroutine = null;
                 gameStats.text = $"Moves: {Manager.Singleton.GetMoves()}   Time:{timeCounter.text}";
@@ -110,10 +120,11 @@ public class UIManager : MonoBehaviour
 
     private void SetRecords()
     {
+        /*
         foreach(TextAsset lvl in levels)
         {
             _levelPlaceholders[lvl].SetRecordString( RecordManager.Singleton.getRecordString(lvl));
-        }
+        } */
     }
 
     //******************************************************************************************************************
@@ -127,7 +138,7 @@ public class UIManager : MonoBehaviour
     public void OnPlayClicked()
     {
         introductionScreen.SetActive(false);
-        LoadLevels();
+        LoadLevels(_currentPage);
         Button();
     }
     
@@ -168,18 +179,14 @@ public class UIManager : MonoBehaviour
         yield return null;
     }
 
-    private void LoadLevels()
+    private void LoadLevels(int index)
     {
         levelSelectionScreen.SetActive(true);
-        if (levels != null) return;
         
-        Object[] objects = Resources.LoadAll("Levels/");
-        levels = new TextAsset[objects.Length];
-        for (int i = 0; i < objects.Length; i++)
-            levels[i] = (TextAsset)objects[i];
-
-        levels.OrderBy(level => level.name);
-        foreach (TextAsset level in levels)
+        foreach(Transform child in levelsContent)
+            Destroy(child.gameObject);
+        
+        foreach (TextAsset level in _levels[index])
         {
             GameObject placeholder = Instantiate(placeholderPrefab, levelsContent);
                 
@@ -189,11 +196,33 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    private void GenerateLevels()
+    {
+        DirectoryInfo dirInfo = new DirectoryInfo(Application.dataPath + "/Resources/Levels/");
+        _levels = new List<List<TextAsset>>();
+        int current = 0;
+        foreach(var dir in dirInfo.GetDirectories())
+        {
+            _levels.Add(new List<TextAsset>());
+            string[] subfolders = dir.Name.Split("/");
+            string folderPath = subfolders[^1];
+            Object[] levels = Resources.LoadAll("Levels/" + folderPath + "/");
+            foreach (var textAsset in levels)
+            {
+                _levels[current].Add((TextAsset)textAsset);
+            }
+            _levels[current].OrderBy(level => level.name);
+            current++;
+        }
+        _maxPages = current;
+    }
+
     public void StartTimeCoroutine()
     {
         if (timeCoroutine == null)
             timeCoroutine = StartCoroutine(StartTime());
     }
+    
     public IEnumerator StartTime()
     {
         int random = Random.Range(1, 5);
@@ -234,15 +263,33 @@ public class UIManager : MonoBehaviour
     public void OnClickNextLevel()
     {
         victoryPanel.SetActive(false);
-        int i;
-        for (i=0;i < levels.Length;i++)
-        {
-            if(levels[i] == Manager.Singleton._currentLevel){
-                break;
-            }
-        }
-        Manager.Singleton.SelectedLevel(levels[(i + 1) % levels.Length]);
+        Manager.Singleton.SelectedLevel(_levels[_currentPage][_currentLevel+1]);
+    }
 
+    public void OnClickNextPage()
+    {
+        Button();
+        _currentPage++;
+        if (_currentPage > _maxPages - 1)
+        {
+            _currentPage--;
+            return;
+        }
+        LoadLevels(_currentPage);
+
+    }
+    
+    public void OnClickPreviousPage()
+    {
+        Button();
+        _currentPage--;
+        if (_currentPage < 0)
+        {
+            _currentPage++;
+            return;
+        }
+        LoadLevels(_currentPage);
+        
     }
 
 

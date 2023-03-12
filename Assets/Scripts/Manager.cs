@@ -6,6 +6,7 @@ using System.IO;
 using Enums;
 using Unity.VisualScripting;
 using Unity.VisualScripting.FullSerializer;
+using UnityEngine.UI;
 
 public class Manager : MonoBehaviour
 {
@@ -15,6 +16,8 @@ public class Manager : MonoBehaviour
     public float durationBetween = 0.05f;
     public bool mouseMoving;
     public bool catMoving;
+    public float minZoom = 5;
+    public float maxZoom = 13;
     
     [SerializeField] private GameObject gridPrefab;
     private GameObject grid;
@@ -157,13 +160,29 @@ public class Manager : MonoBehaviour
 
     public void OnResetClicked()
     {
+        if (_currentLevel == null) return;
         UIManager.Singleton.Reset(false);
         Destroy(grid);
         _mice.Clear();
         moves = 0;
         StartGrid(_currentLevel, true);
     }
-    
+
+    public void OnZoomInClicked()
+    {
+        UIManager.Singleton.Button();
+        if (_currentLevel == null) return;
+        float size = mainCamera.GetComponent<Camera>().orthographicSize;
+        mainCamera.GetComponent<Camera>().orthographicSize = Mathf.Max(minZoom, size - 1);
+    }
+
+    public void OnZoomOutClicked()
+    {
+        UIManager.Singleton.Button();
+        if (_currentLevel == null) return;
+        float size = mainCamera.GetComponent<Camera>().orthographicSize;
+        mainCamera.GetComponent<Camera>().orthographicSize = Mathf.Min(maxZoom, size + 1);
+    }
     public void OnBackMenu()
     {
         ClearGame();
