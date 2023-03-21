@@ -14,8 +14,6 @@ public class Manager : MonoBehaviour
     public bool debug = true;
     public float rotatingDuration = 0.05f;
     public float durationBetween = 0.05f;
-    public bool mouseMoving;
-    public bool catMoving;
     public float minZoom = 5;
     public float maxZoom = 13;
     
@@ -25,13 +23,15 @@ public class Manager : MonoBehaviour
     [SerializeField] private GameObject background;
     [SerializeField] private GameObject catPrefab;
     private GameObject _cat;
+    public GameObject cat => _cat;
     private int moves;
     [SerializeField] private GameObject mousePrefab;
     private List<GameObject> _mice = new List<GameObject>();
     
     private Controller _controller;
     private GameState _state = GameState.Menu;
-    public TextAsset _currentLevel;
+    public GameState state => _state;
+    public UIManager.LevelFile _currentLevel = null;
 
     
 
@@ -44,7 +44,7 @@ public class Manager : MonoBehaviour
         else UIManager.Singleton.UpdateState(_state);
     }
 
-    public void SelectedLevel(TextAsset level)
+    public void SelectedLevel(UIManager.LevelFile level)
     {
         ClearGame();
         UIManager.Singleton.Reset(false);
@@ -58,8 +58,6 @@ public class Manager : MonoBehaviour
         Destroy(grid);
         _mice.Clear();
         
-            
-            
         Destroy(_cat);
         _cat = null;
         moves = 0;
@@ -70,13 +68,12 @@ public class Manager : MonoBehaviour
         return moves;
     }
 
-
-    private void StartGrid(TextAsset level, bool reset)
+    private void StartGrid(UIManager.LevelFile level, bool reset)
     {
         grid = Instantiate(gridPrefab);
         HouseGrid houseGrid = grid.GetComponent<HouseGrid>();
         if (houseGrid == null) return;
-        houseGrid.ParseFile(level.text, reset);
+        houseGrid.ParseFile(level.level, reset);
     }
 
     public void FinishGrid()
@@ -86,7 +83,7 @@ public class Manager : MonoBehaviour
         UIManager.Singleton.UpdateMouse(_mice.Count);
         UIManager.Singleton.UpdateMoves(moves);
         UIManager.Singleton.StartTimeCoroutine();
-        StartCoroutine(followCat());
+        StartCoroutine(FollowCat());
         _cat.GetComponent<Cat>().MakeParticles();
     }
     
@@ -95,9 +92,10 @@ public class Manager : MonoBehaviour
         _cat = Instantiate(catPrefab, houseTile.transform);
         _cat.name = "Cat";
         _cat.GetComponent<Cat>().Set(houseTile.GetComponent<HouseTile>());
+        MovementManager.Singleton.cat = _cat.GetComponent<Cat>();
     }
 
-    private IEnumerator followCat()
+    private IEnumerator FollowCat()
     {
         Vector3 cameraPosition = mainCamera.transform.position;
         while (true)
@@ -128,7 +126,7 @@ public class Manager : MonoBehaviour
 
     public bool CanMove()
     {
-        if (_state == GameState.Playing && !catMoving && !mouseMoving) return true;
+        if (_state == GameState.Playing && !MovementManager.Singleton.IsSomethingMoving()) return true;
         return false;
     }
 
@@ -146,13 +144,13 @@ public class Manager : MonoBehaviour
     {
         _state = GameState.Victory;
         var record = new RecordManager.RecordData();
-        record.attempts = RecordManager.Singleton.getAttempts(_currentLevel) + 1;
+        //record.attempts = RecordManager.Singleton.getAttempts(_currentLevel) + 1;
         record.moves = moves;
         string timeString = UIManager.Singleton.GetTime().TrimEnd("s");
         
         record.minutes = int.Parse(timeString.Split(":")[0].TrimEnd("m"));
         record.seconds = int.Parse(timeString.Split(":")[1]);
-        RecordManager.Singleton.addRecord(_currentLevel, record);
+        //RecordManager.Singleton.addRecord(_currentLevel, record);
         UIManager.Singleton.UpdateState(_state);
         
     }
@@ -189,6 +187,5 @@ public class Manager : MonoBehaviour
         UIManager.Singleton.Reset(true);
         _state = GameState.Menu;
         UIManager.Singleton.UpdateState(_state);
-    }
-    
+    }    
 }

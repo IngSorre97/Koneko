@@ -86,34 +86,6 @@ public class HouseTile : MonoBehaviour
         return tileType == TileType.Empty || tileType == TileType.Mouse;
     }
     
-    public bool TryMovement(Movement movement, Cat cat)
-    {
-        HouseTile targetTile = grid.TryMovementBounds(this, movement);
-        if (!targetTile) return false;
-        if (!targetTile.IsWalkable()) return false;
-        switch (targetTile.tileType)
-        {
-            case TileType.Empty:
-                targetTile.tileType = TileType.Cat;
-                cat.Move(targetTile.gameObject, movement);
-                tileType = TileType.Empty;
-                return true;
-            case TileType.Mouse:
-                GameObject mouse = targetTile.transform.Find("Mouse").gameObject;
-                HouseTile mouseTargetTile = grid.TryMovementBounds(targetTile, movement);
-                if (!mouseTargetTile) return false;
-                if (!mouseTargetTile.CanMoveMouse()) return false;
-                mouse.GetComponent<Mouse>().Move(mouseTargetTile.gameObject, movement);
-                targetTile.tileType = TileType.Cat;
-                cat.Move(targetTile.gameObject, movement);
-                tileType = TileType.Empty;
-                UIManager.Singleton.Push();
-                return true;
-        }
-        
-        return false;
-    }
-
     public bool CanMoveMouse()
     {
         return tileType == TileType.Empty || tileType == TileType.Hole;

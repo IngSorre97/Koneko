@@ -3,61 +3,56 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Cat : MonoBehaviour
+public class Cat : PushableEntity
 {
     private Controller _controller;
-    private HouseTile _currentTile;
+    public HouseTile currentTile;
     [SerializeField] private ParticleSystem resetDust;
     private Movement _currentMovement;
-    
+
     public void Set(HouseTile houseTile)
     {
-        _currentTile = houseTile;
+        currentTile = houseTile;
         
         _controller = new Controller();
         _controller.Enable();
 
+        
         _controller.Gameplay.Left.performed += ctx =>
-        {
-            TryMovement(Movement.Left);
+        {       
+            MovementManager.Singleton.TryMovement(Movement.Left);
         };
         _controller.Gameplay.Right.performed += ctx =>
         {
-            TryMovement(Movement.Right);
+            MovementManager.Singleton.TryMovement(Movement.Right);
         };
         _controller.Gameplay.Up.performed += ctx =>
         {
-            TryMovement(Movement.Up);
+            MovementManager.Singleton.TryMovement(Movement.Up);
         };
         _controller.Gameplay.Down.performed += ctx =>
         {
-            TryMovement(Movement.Down);
+            MovementManager.Singleton.TryMovement(Movement.Down);
         };
+        
         _controller.Gameplay.Menu.performed += ctx =>
         {
             Application.Quit();
         };
     }
 
-    private void TryMovement(Movement movement)
+    public override void Move(GameObject houseTile, Movement movement)
     {
-        if (!Manager.Singleton.CanMove()) return;
-        if (_currentTile.TryMovement(movement, this))
-            Manager.Singleton.Move();
-    }
-
-    public void Move(GameObject houseTile, Movement movement)
-    {
-        _currentTile = houseTile.GetComponent<HouseTile>();
+        currentTile = houseTile.GetComponent<HouseTile>();
         transform.SetParent(houseTile.transform, true);
         _currentMovement = movement;
+        gameObject.GetComponent<Animator>().SetInteger("Movement", (int) movement);
         StartCoroutine(MoveRoutine(0.25f, transform.position, houseTile.transform.position));
     }
 
     private IEnumerator MoveRoutine(float duration, Vector3 start, Vector3 end)
     {
-        Manager.Singleton.catMoving = true;
-        gameObject.GetComponent<Animator>().SetInteger("Movement", (int)_currentMovement);
+        MovementManager.Singleton.CatMovement(true);
         float time = 0;
         float fraction = Mathf.Min(time / duration, 1.0f);
         while (time < duration)
@@ -67,15 +62,11 @@ public class Cat : MonoBehaviour
             transform.position = Vector3.Lerp(start, end, fraction);
             yield return null;
         }
-        _currentTile.tileType = TileType.Mouse;
-        transform.SetParent(_currentTile.gameObject.transform);
+        currentTile.tileType = TileType.Mouse;
+        transform.SetParent(currentTile.gameObject.transform);
         _currentMovement = Movement.None;
-        gameObject.GetComponent<Animator>().SetInteger("Movement", (int)_currentMovement);
-
-        Manager.Singleton.catMoving = false;
-        _currentMovement = Movement.None;
-        gameObject.GetComponent<Animator>().SetInteger("Movement", (int)_currentMovement);
         
+        MovementManager.Singleton.CatMovement(false);
         yield return null;
     }
 
@@ -86,7 +77,6 @@ public class Cat : MonoBehaviour
 
     public void MakeParticles()
     {
-        Debug.Log("Playing parcticle eff");
         resetDust.Play();
     }
 }

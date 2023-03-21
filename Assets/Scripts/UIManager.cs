@@ -3,20 +3,29 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Enums;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
-using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
+using Object = UnityEngine.Object;
 
 public class UIManager : MonoBehaviour
 {
+    public class LevelFile
+    {
+        public string name;
+        public TextAsset level;
+    }
+
     public static UIManager Singleton;
 
+    [SerializeField] private TextMeshProUGUI introduction;
     [Header("Parameters")]
     [SerializeField] private float fadingDuration = 2.0f;
+    [SerializeField] private List<string> levelsPages = new List<string>();
     
     [Header("Menu canvases")]
     [SerializeField] private GameObject titlePanel;
@@ -68,8 +77,8 @@ public class UIManager : MonoBehaviour
     private int _maxPages;
     private int _currentPage;
     private int _currentLevel;
-    private List<List<TextAsset>> _levels = null;
-    private Dictionary<TextAsset, Placeholder> _levelPlaceholders = new Dictionary<TextAsset, Placeholder>();
+    private List<List<LevelFile>> _levels = null;
+    private Dictionary<LevelFile, Placeholder> _levelPlaceholders = new Dictionary<LevelFile, Placeholder>();
     private Coroutine timeCoroutine;
     
     void Awake()
@@ -166,6 +175,20 @@ public class UIManager : MonoBehaviour
 
         introductionScreen.SetActive(true);
         
+        /*
+        StringBuilder builder = new StringBuilder();
+        foreach (string page in levelsPages)
+        {
+            Debug.Log(page);
+            _levels.Add(new List<LevelFile>());
+            foreach (Object level in Resources.LoadAll("/Levels/" + page + "/"))
+            {
+                builder.Append(level.name);
+            }
+        }
+        introduction.text = builder.ToString();
+        */
+
         float time = 0;
         while (time < fadingDuration)
         {
@@ -186,10 +209,10 @@ public class UIManager : MonoBehaviour
         foreach(Transform child in levelsContent)
             Destroy(child.gameObject);
         
-        foreach (TextAsset level in _levels[index])
+        foreach (LevelFile level in _levels[index])
         {
             GameObject placeholder = Instantiate(placeholderPrefab, levelsContent);
-                
+            
             placeholder.GetComponent<Placeholder>().level = level;
             placeholder.GetComponent<Placeholder>().levelName.text = level.name;
             _levelPlaceholders[level] = placeholder.GetComponent<Placeholder>();
@@ -198,20 +221,19 @@ public class UIManager : MonoBehaviour
 
     private void GenerateLevels()
     {
-        DirectoryInfo dirInfo = new DirectoryInfo(Application.dataPath + "/Resources/Levels/");
-        _levels = new List<List<TextAsset>>();
         int current = 0;
-        foreach(var dir in dirInfo.GetDirectories())
+        _levels = new List<List<LevelFile>>();
+        foreach(string page in levelsPages)
         {
-            _levels.Add(new List<TextAsset>());
-            string[] subfolders = dir.Name.Split("/");
-            string folderPath = subfolders[^1];
-            Object[] levels = Resources.LoadAll("Levels/" + folderPath + "/");
-            foreach (var textAsset in levels)
+            _levels.Add(new List<LevelFile>());
+            foreach (Object level in Resources.LoadAll("Levels/" + page + "/"))
             {
-                _levels[current].Add((TextAsset)textAsset);
+                LevelFile levelFile = new LevelFile();
+                levelFile.name = level.name;
+                levelFile.level = (TextAsset) level;
+                _levels[current].Add(levelFile);
             }
-            _levels[current].OrderBy(level => level.name);
+            //_levels[current].OrderBy(level => level.Name);
             current++;
         }
         _maxPages = current;

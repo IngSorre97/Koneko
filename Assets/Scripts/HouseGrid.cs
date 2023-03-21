@@ -19,10 +19,14 @@ public class HouseGrid : MonoBehaviour
     private List<List<GameObject>> gridLayout = new List<List<GameObject>>();
     public GameObject spawnTile;
     public List<GameObject> mouseTiles = new List<GameObject>();
-    
 
-    public void ParseFile(string level, bool reset)
+    private void Start()
     {
+        MovementManager.Singleton.grid = this;
+    }
+    public void ParseFile(TextAsset textAsset, bool reset)
+    {
+        string level = textAsset.text;
         string[] lines = level.Split("\n");
         String[] parameters = lines[0].Split(" ");
         _rows = int.Parse(parameters[0]);
@@ -90,11 +94,11 @@ public class HouseGrid : MonoBehaviour
             
             case Movement.Up:
                 if (houseTile.row == _rows - 1) return null;
-                return gridLayout[houseTile.row + 1][houseTile.column].GetComponent<HouseTile>();
+                return gridLayout[houseTile.row - 1][houseTile.column].GetComponent<HouseTile>();
             
             case Movement.Down:
                 if (houseTile.row == 0) return null;
-                return gridLayout[houseTile.row - 1][houseTile.column].GetComponent<HouseTile>();
+                return gridLayout[houseTile.row + 1][houseTile.column].GetComponent<HouseTile>();
             
             default:
                 return null;

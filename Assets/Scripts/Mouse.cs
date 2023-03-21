@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Mouse : MonoBehaviour
+public class Mouse : PushableEntity
 {
     public HouseTile _currentTile { get; private set; }
     private Movement _currentMovement;
@@ -12,7 +12,7 @@ public class Mouse : MonoBehaviour
     {
         _currentTile = houseTile;
     }
-    public void Move(GameObject houseTile, Movement movement)
+    public override void Move(GameObject houseTile, Movement movement)
     {
         _currentMovement = movement;
         gameObject.GetComponent<Animator>().SetInteger("Movement", (int)_currentMovement);
@@ -22,7 +22,7 @@ public class Mouse : MonoBehaviour
 
     private IEnumerator MoveRoutine(float duration, Vector3 start, Vector3 end)
     {
-        Manager.Singleton.mouseMoving = true;
+        MovementManager.Singleton.MouseMovement(true, this);
         float time = 0;
         float fraction = Mathf.Min(time / duration, 1.0f);
         while (time < duration)
@@ -41,11 +41,10 @@ public class Mouse : MonoBehaviour
             _currentTile.tileType = TileType.Mouse;
             transform.SetParent(_currentTile.gameObject.transform);
             _currentMovement = Movement.None;
-            gameObject.GetComponent<Animator>().SetInteger("Movement", (int)_currentMovement);
         }
-        
-        Manager.Singleton.mouseMoving = false;
-        
+
+        MovementManager.Singleton.MouseMovement(false, this);
+
         yield return null;
     }
 
