@@ -48,26 +48,11 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI miceLeft;
     [SerializeField] private TextMeshProUGUI movesCounter;
     [SerializeField] private TextMeshProUGUI timeCounter;
-    [SerializeField] private TextMeshProUGUI gameStats;
+    [SerializeField] private TextMeshProUGUI victoryMoves;
+    [SerializeField] private TextMeshProUGUI victoryTime;
     [SerializeField] private GameObject victoryPanel;
-    [SerializeField] private Button nextLevel;
-    
-    [Header("Audio clips")]
-    [SerializeField] private AudioSource backgroundMusic;
-    [SerializeField] private AudioSource soundEffects;
-    [SerializeField] private AudioClip menu;
-    [SerializeField] private AudioClip level1;
-    [SerializeField] private AudioClip level2;
-    [SerializeField] private AudioClip level3;
-    [SerializeField] private AudioClip level4;
-    [SerializeField] private AudioClip level5;
-    [SerializeField] private AudioClip button;
-    [SerializeField] private AudioClip voice;
-    [SerializeField] private AudioClip start;
-    [SerializeField] private AudioClip victory;
-    [SerializeField] private AudioClip push;
-    [SerializeField] private AudioClip reset;
-    
+    [SerializeField] private GameObject bottomButtons;
+
     [Header("Sprites")]
     public Sprite outOfBounds;
     public Sprite wall;
@@ -85,23 +70,35 @@ public class UIManager : MonoBehaviour
     {
         if (Singleton == null) Singleton = this;
         else return;
+        TurnOffPanels();
+
         titlePanel.SetActive(true);
         menuPanel.SetActive(true);
     }
-    
+
+    private void TurnOffPanels()
+    {
+        menuPanel.SetActive(false);
+        countersPanel.SetActive(false);
+        bottomButtons.SetActive(false);
+        victoryPanel.SetActive(false);
+    }
+
     public void UpdateState(GameState state)
     {
+        TurnOffPanels();
         switch (state)
         {
             case GameState.Menu:
                 if (_levels == null)
                 {
+                    menuPanel.SetActive(true);
+                    introductionScreen.SetActive(true);
                     StartCoroutine(FadingMenu());
                     GenerateLevels();
                 }
                 else
                 {
-                    victoryPanel.SetActive(false);
                     menuPanel.SetActive(true);
                     SetRecords();
                     LoadLevels(_currentPage);
@@ -110,19 +107,16 @@ public class UIManager : MonoBehaviour
                 break;
             case GameState.Playing:
                 countersPanel.SetActive(true);
+                bottomButtons.SetActive(true);
                 levelName.text = Manager.Singleton._currentLevel.name;
-                victoryPanel.SetActive(false);
                 break;
             case GameState.Victory:
-                countersPanel.SetActive(false);
                 victoryPanel.SetActive(true);
-                if (_currentLevel == _levels[_currentPage].Count)
-                    nextLevel.gameObject.SetActive(false);
                 StopCoroutine(timeCoroutine);
                 timeCoroutine = null;
-                gameStats.text = $"Moves: {Manager.Singleton.GetMoves()}   Time:{timeCounter.text}";
-                soundEffects.clip = victory;
-                soundEffects.Play();
+                victoryMoves.text = Manager.Singleton.GetMoves().ToString();
+                victoryTime.text = timeCounter.text;
+                SoundManager.Instance.Victory();
                 break;
         }
     }
@@ -141,14 +135,14 @@ public class UIManager : MonoBehaviour
     public void OnCreditClicked()
     {
         creditsScreen.SetActive(!creditsScreen.activeSelf);
-        Button();
+        SoundManager.Instance.Button();
     }
     
     public void OnPlayClicked()
     {
         introductionScreen.SetActive(false);
         LoadLevels(_currentPage);
-        Button();
+        SoundManager.Instance.Button();
     }
     
     public void OnLevelClicked(Placeholder placeholder)
@@ -156,9 +150,12 @@ public class UIManager : MonoBehaviour
         Manager.Singleton.SelectedLevel(placeholder.level);
         menuPanel.SetActive(false);
         levelSelectionScreen.SetActive(false);
-        
-        Button();
+        _currentLevel = placeholder.index;
+
+        SoundManager.Instance.Button();
     }
+
+
     
     //******************************************************************************************************************
     //*** Coroutines
@@ -167,27 +164,11 @@ public class UIManager : MonoBehaviour
     {
         CanvasGroup canvasGroup = titlePanel.GetComponent<CanvasGroup>();
         yield return new WaitForSeconds(1.0f);
-        soundEffects.clip = button;
-        soundEffects.Play();
+        SoundManager.Instance.Button();
         yield return new WaitForSeconds(1.0f);
-        backgroundMusic.clip = menu;
-        backgroundMusic.Play();
+        SoundManager.Instance.StartMenuMusic();
 
         introductionScreen.SetActive(true);
-        
-        /*
-        StringBuilder builder = new StringBuilder();
-        foreach (string page in levelsPages)
-        {
-            Debug.Log(page);
-            _levels.Add(new List<LevelFile>());
-            foreach (Object level in Resources.LoadAll("/Levels/" + page + "/"))
-            {
-                builder.Append(level.name);
-            }
-        }
-        introduction.text = builder.ToString();
-        */
 
         float time = 0;
         while (time < fadingDuration)
@@ -208,14 +189,17 @@ public class UIManager : MonoBehaviour
         
         foreach(Transform child in levelsContent)
             Destroy(child.gameObject);
-        
+
+        int counter = 0;
         foreach (LevelFile level in _levels[index])
         {
             GameObject placeholder = Instantiate(placeholderPrefab, levelsContent);
-            
+
+            placeholder.GetComponent<Placeholder>().index = counter;
             placeholder.GetComponent<Placeholder>().level = level;
             placeholder.GetComponent<Placeholder>().levelName.text = level.name;
             _levelPlaceholders[level] = placeholder.GetComponent<Placeholder>();
+            counter++;
         }
     }
 
@@ -233,7 +217,6 @@ public class UIManager : MonoBehaviour
                 levelFile.level = (TextAsset) level;
                 _levels[current].Add(levelFile);
             }
-            //_levels[current].OrderBy(level => level.Name);
             current++;
         }
         _maxPages = current;
@@ -247,28 +230,7 @@ public class UIManager : MonoBehaviour
     
     public IEnumerator StartTime()
     {
-        int random = Random.Range(1, 5);
-        switch (random)
-        {
-            case 1:
-                backgroundMusic.clip = level1;
-                break;
-            case 2:
-                backgroundMusic.clip = level2;
-                break;
-            case 3:
-                backgroundMusic.clip = level3;
-                break;
-            case 4:
-                backgroundMusic.clip = level4;
-                break;
-            case 5:
-                backgroundMusic.clip = level5;
-                break;
-        }
-        backgroundMusic.Play();
-        soundEffects.clip = start;
-        soundEffects.Play();
+        SoundManager.Instance.StartMusic();
         timeCounter.text = "00:00";
         int time = 0;
         while (true)
@@ -285,12 +247,21 @@ public class UIManager : MonoBehaviour
     public void OnClickNextLevel()
     {
         victoryPanel.SetActive(false);
-        Manager.Singleton.SelectedLevel(_levels[_currentPage][_currentLevel+1]);
+        _currentLevel = Mathf.Min(_currentLevel + 1, _levels[_currentPage].Count - 1);
+        Manager.Singleton.SelectedLevel(_levels[_currentPage][_currentLevel]);
+
+    }
+
+    public void OnClickRetry()
+    {
+        victoryPanel.SetActive(false);
+        Manager.Singleton.SelectedLevel(_levels[_currentPage][_currentLevel]);
+
     }
 
     public void OnClickNextPage()
     {
-        Button();
+        SoundManager.Instance.Button();
         _currentPage++;
         if (_currentPage > _maxPages - 1)
         {
@@ -303,7 +274,7 @@ public class UIManager : MonoBehaviour
     
     public void OnClickPreviousPage()
     {
-        Button();
+        SoundManager.Instance.Button();
         _currentPage--;
         if (_currentPage < 0)
         {
@@ -313,9 +284,6 @@ public class UIManager : MonoBehaviour
         LoadLevels(_currentPage);
         
     }
-
-
-    
     public void UpdateMoves(int amount)
     {
         movesCounter.text = amount.ToString();
@@ -341,22 +309,19 @@ public class UIManager : MonoBehaviour
             }
             
         }
-        soundEffects.clip = reset;
-        soundEffects.Play();
+        SoundManager.Instance.Reset();
     }
 
-    public void Push()
+    public void OnZoomOutClicked()
     {
-        soundEffects.clip = push;
-        soundEffects.Play();
+        Manager.Singleton.OnZoomOutClicked();
     }
 
-    public void Button()
+    public void OnZoomInClicked()
     {
-        soundEffects.clip = button;
-        soundEffects.Play();
+        Manager.Singleton.OnZoomInClicked();
     }
-    
+
     public string GetTime()
     {
         return timeCounter.text;

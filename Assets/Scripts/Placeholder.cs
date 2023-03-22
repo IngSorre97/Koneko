@@ -8,6 +8,7 @@ public class Placeholder : MonoBehaviour
     public TextMeshProUGUI levelName;
     public TextMeshProUGUI record;
     public UIManager.LevelFile level;
+    public int index;
 
     public void OnClicked()
     {

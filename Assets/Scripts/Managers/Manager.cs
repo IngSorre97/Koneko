@@ -144,13 +144,12 @@ public class Manager : MonoBehaviour
     {
         _state = GameState.Victory;
         var record = new RecordManager.RecordData();
-        //record.attempts = RecordManager.Singleton.getAttempts(_currentLevel) + 1;
+        
         record.moves = moves;
         string timeString = UIManager.Singleton.GetTime().TrimEnd("s");
         
         record.minutes = int.Parse(timeString.Split(":")[0].TrimEnd("m"));
         record.seconds = int.Parse(timeString.Split(":")[1]);
-        //RecordManager.Singleton.addRecord(_currentLevel, record);
         UIManager.Singleton.UpdateState(_state);
         
     }
@@ -165,10 +164,17 @@ public class Manager : MonoBehaviour
         moves = 0;
         StartGrid(_currentLevel, true);
     }
+    public void OnBackMenu()
+    {
+        ClearGame();
+        UIManager.Singleton.Reset(true);
+        _state = GameState.Menu;
+        UIManager.Singleton.UpdateState(_state);
+    }
 
     public void OnZoomInClicked()
     {
-        UIManager.Singleton.Button();
+        SoundManager.Instance.Button();
         if (_currentLevel == null) return;
         float size = mainCamera.GetComponent<Camera>().orthographicSize;
         mainCamera.GetComponent<Camera>().orthographicSize = Mathf.Max(minZoom, size - 1);
@@ -176,16 +182,10 @@ public class Manager : MonoBehaviour
 
     public void OnZoomOutClicked()
     {
-        UIManager.Singleton.Button();
+        SoundManager.Instance.Button();
         if (_currentLevel == null) return;
         float size = mainCamera.GetComponent<Camera>().orthographicSize;
         mainCamera.GetComponent<Camera>().orthographicSize = Mathf.Min(maxZoom, size + 1);
     }
-    public void OnBackMenu()
-    {
-        ClearGame();
-        UIManager.Singleton.Reset(true);
-        _state = GameState.Menu;
-        UIManager.Singleton.UpdateState(_state);
-    }    
+    
 }

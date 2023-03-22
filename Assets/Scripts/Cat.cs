@@ -20,19 +20,19 @@ public class Cat : PushableEntity
         
         _controller.Gameplay.Left.performed += ctx =>
         {       
-            MovementManager.Singleton.TryMovement(Movement.Left);
+            MovementManager.Singleton.TryMovement(Movement.Left, false);
         };
         _controller.Gameplay.Right.performed += ctx =>
         {
-            MovementManager.Singleton.TryMovement(Movement.Right);
+            MovementManager.Singleton.TryMovement(Movement.Right, false);
         };
         _controller.Gameplay.Up.performed += ctx =>
         {
-            MovementManager.Singleton.TryMovement(Movement.Up);
+            MovementManager.Singleton.TryMovement(Movement.Up, false);
         };
         _controller.Gameplay.Down.performed += ctx =>
         {
-            MovementManager.Singleton.TryMovement(Movement.Down);
+            MovementManager.Singleton.TryMovement(Movement.Down, false);
         };
         
         _controller.Gameplay.Menu.performed += ctx =>

@@ -28,7 +28,7 @@ public class MovementManager : MonoBehaviour
             button.isMoving = true;
             if (currentMovement == Movement.None)
             {
-                bool result = TryMovement(storedMovement);
+                bool result = TryMovement(storedMovement, false);
                 currentMovement = result ? storedMovement : Movement.None;
             }
         } else
@@ -39,7 +39,7 @@ public class MovementManager : MonoBehaviour
         }
     }
 
-    public bool TryMovement(Movement movement)
+    public bool TryMovement(Movement movement, bool isRedo)
     {
         if (!Manager.Singleton.CanMove()) return false;
 
@@ -64,7 +64,8 @@ public class MovementManager : MonoBehaviour
                 targetTile.tileType = TileType.Cat;
                 cat.currentTile.tileType = TileType.Empty;
                 cat.Move(targetTile.gameObject, movement);
-                UIManager.Singleton.Push();
+                if (!isRedo)
+                    SoundManager.Instance.Push();
                 currentMovement = movement;
                 Manager.Singleton.Move();
                 return true;
@@ -100,7 +101,7 @@ public class MovementManager : MonoBehaviour
     {
         currentMovement = Movement.None;
         if (storedMovement != Movement.None)
-            return TryMovement(storedMovement);
+            return TryMovement(storedMovement, true);
         return false;
     }
 
