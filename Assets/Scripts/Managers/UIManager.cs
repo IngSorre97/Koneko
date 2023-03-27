@@ -18,9 +18,14 @@ public class UIManager : MonoBehaviour
     {
         public string name;
         public TextAsset level;
+        public int threeStars;
+        public int twoStars;
     }
 
     public static UIManager Singleton;
+
+    [SerializeField] private TMP_InputField nicknameIF;
+    public string nickname;
 
     [SerializeField] private TextMeshProUGUI introduction;
     [Header("Parameters")]
@@ -53,15 +58,10 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject victoryPanel;
     [SerializeField] private GameObject bottomButtons;
 
-    [Header("Sprites")]
-    public Sprite outOfBounds;
-    public Sprite wall;
-    public Sprite empty;
-    public Sprite hole;
-
     private int _maxPages;
     private int _currentPage;
     private int _currentLevel;
+    public int _currentID => _currentLevel;
     private List<List<LevelFile>> _levels = null;
     private Dictionary<LevelFile, Placeholder> _levelPlaceholders = new Dictionary<LevelFile, Placeholder>();
     private Coroutine timeCoroutine;
@@ -71,9 +71,14 @@ public class UIManager : MonoBehaviour
         if (Singleton == null) Singleton = this;
         else return;
         TurnOffPanels();
+    }
 
+    public void StartGame()
+    {
         titlePanel.SetActive(true);
         menuPanel.SetActive(true);
+        introductionScreen.SetActive(true);
+        StartCoroutine(FadingMenu());
     }
 
     private void TurnOffPanels()
@@ -90,20 +95,8 @@ public class UIManager : MonoBehaviour
         switch (state)
         {
             case GameState.Menu:
-                if (_levels == null)
-                {
                     menuPanel.SetActive(true);
-                    introductionScreen.SetActive(true);
-                    StartCoroutine(FadingMenu());
-                    GenerateLevels();
-                }
-                else
-                {
-                    menuPanel.SetActive(true);
-                    SetRecords();
-                    LoadLevels(_currentPage);
-                }
-
+                    StartCoroutine(LoadLevels(_currentPage));
                 break;
             case GameState.Playing:
                 countersPanel.SetActive(true);
@@ -121,15 +114,6 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    private void SetRecords()
-    {
-        /*
-        foreach(TextAsset lvl in levels)
-        {
-            _levelPlaceholders[lvl].SetRecordString( RecordManager.Singleton.getRecordString(lvl));
-        } */
-    }
-
     //******************************************************************************************************************
     //*** Button functions
     public void OnCreditClicked()
@@ -140,8 +124,12 @@ public class UIManager : MonoBehaviour
     
     public void OnPlayClicked()
     {
+        if (nicknameIF.text == "") return;
+        nickname = nicknameIF.text;
+
+        RecordManager.Singleton.SetRecords(nickname);
         introductionScreen.SetActive(false);
-        LoadLevels(_currentPage);
+        StartCoroutine(GenerateLevels());
         SoundManager.Instance.Button();
     }
     
@@ -183,14 +171,17 @@ public class UIManager : MonoBehaviour
         yield return null;
     }
 
-    private void LoadLevels(int index)
+    private IEnumerator LoadLevels(int index)
     {
+        while (RecordManager.Singleton.isDirty)
+            yield return new WaitForSeconds(0.25f);
+
         levelSelectionScreen.SetActive(true);
         
         foreach(Transform child in levelsContent)
             Destroy(child.gameObject);
 
-        int counter = 0;
+        int counter = 0 +index*11; //TODO DA CAMBIARE
         foreach (LevelFile level in _levels[index])
         {
             GameObject placeholder = Instantiate(placeholderPrefab, levelsContent);
@@ -198,13 +189,32 @@ public class UIManager : MonoBehaviour
             placeholder.GetComponent<Placeholder>().index = counter;
             placeholder.GetComponent<Placeholder>().level = level;
             placeholder.GetComponent<Placeholder>().levelName.text = level.name;
+
+            int record = RecordManager.Singleton.GetRecordByLevel(counter.ToString());
+            if (record != -1)
+                Debug.Log("Found " + record + " for level " + counter.ToString());
+            if (record == -1)
+                placeholder.GetComponent<Placeholder>().stars.sprite = SpritesData.Singleton.noStars;
+            else if (record < level.threeStars)
+                placeholder.GetComponent<Placeholder>().stars.sprite = SpritesData.Singleton.threeStar;
+            else if (record < level.twoStars)
+                placeholder.GetComponent<Placeholder>().stars.sprite = SpritesData.Singleton.twoStar;
+            else
+                placeholder.GetComponent<Placeholder>().stars.sprite = SpritesData.Singleton.oneStar;
+
+
             _levelPlaceholders[level] = placeholder.GetComponent<Placeholder>();
             counter++;
         }
+
+        yield return null;
     }
 
-    private void GenerateLevels()
+    private IEnumerator GenerateLevels()
     {
+        while (RecordManager.Singleton.isDirty)
+            yield return new WaitForSeconds(0.25f);
+
         int current = 0;
         _levels = new List<List<LevelFile>>();
         foreach(string page in levelsPages)
@@ -212,14 +222,25 @@ public class UIManager : MonoBehaviour
             _levels.Add(new List<LevelFile>());
             foreach (Object level in Resources.LoadAll("Levels/" + page + "/"))
             {
+                string[] levelHeader = level.ToString().Split("\n")[0].Split(" ");
                 LevelFile levelFile = new LevelFile();
                 levelFile.name = level.name;
                 levelFile.level = (TextAsset) level;
+                if (levelHeader.Length != 4)
+                    Debug.LogWarning("Level " + level.name + " is not correctly formatted!");
+                else
+                {
+                    levelFile.twoStars = Int32.Parse(levelHeader[3]);
+                    levelFile.threeStars = Int32.Parse(levelHeader[2]);
+                }
+
                 _levels[current].Add(levelFile);
             }
             current++;
         }
         _maxPages = current;
+        StartCoroutine(LoadLevels(0));
+        yield return null;
     }
 
     public void StartTimeCoroutine()
@@ -268,7 +289,7 @@ public class UIManager : MonoBehaviour
             _currentPage--;
             return;
         }
-        LoadLevels(_currentPage);
+        StartCoroutine(LoadLevels(_currentPage));
 
     }
     
@@ -281,7 +302,7 @@ public class UIManager : MonoBehaviour
             _currentPage++;
             return;
         }
-        LoadLevels(_currentPage);
+        StartCoroutine(LoadLevels(_currentPage));
         
     }
     public void UpdateMoves(int amount)

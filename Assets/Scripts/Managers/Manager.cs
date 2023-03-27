@@ -40,8 +40,8 @@ public class Manager : MonoBehaviour
         if (Singleton == null) Singleton = this;
         else return;
         if (UIManager.Singleton == null)
-            gameObject.GetComponent<UIManager>().UpdateState(_state);
-        else UIManager.Singleton.UpdateState(_state);
+            gameObject.GetComponent<UIManager>().StartGame();
+        else UIManager.Singleton.StartGame();
     }
 
     public void SelectedLevel(UIManager.LevelFile level)
@@ -51,7 +51,6 @@ public class Manager : MonoBehaviour
         _currentLevel = level;
         StartGrid(_currentLevel, false);
     }
-
     private void ClearGame()
     {
         
@@ -144,12 +143,16 @@ public class Manager : MonoBehaviour
     {
         _state = GameState.Victory;
         var record = new RecordManager.RecordData();
-        
+
+        record.nickname = UIManager.Singleton.nickname;
         record.moves = moves;
         string timeString = UIManager.Singleton.GetTime().TrimEnd("s");
         
         record.minutes = int.Parse(timeString.Split(":")[0].TrimEnd("m"));
         record.seconds = int.Parse(timeString.Split(":")[1]);
+
+        RecordManager.Singleton.AddRecord(UIManager.Singleton._currentID.ToString() ,record);
+
         UIManager.Singleton.UpdateState(_state);
         
     }

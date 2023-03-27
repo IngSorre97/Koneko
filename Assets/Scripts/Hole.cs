@@ -4,15 +4,21 @@ using UnityEngine;
 
 public class Hole : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    public int spaceLeft;
+    private int _maxCapacity;
+    public Hole(int capacity)
     {
-        
+        _maxCapacity = capacity;
+        spaceLeft = _maxCapacity;
     }
 
-    // Update is called once per frame
-    void Update()
+    public bool CanEnter()
     {
-        
+        return spaceLeft > 0;
+    }
+
+    public void Enter()
+    {
+        spaceLeft--;
     }
 }

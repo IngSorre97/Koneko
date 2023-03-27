@@ -35,6 +35,7 @@ public class Mouse : PushableEntity
         if (_currentTile.tileType == TileType.Hole)
         {
             StartCoroutine(particles());
+            _currentTile.EnterMouse();
         }
         else
         {

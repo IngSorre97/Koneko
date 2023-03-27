@@ -2,29 +2,41 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using LootLocker.Requests;
+using UnityEngine.SocialPlatforms.Impl;
 
 public class RecordManager : MonoBehaviour
 {
     public static RecordManager Singleton;
+
+    private Dictionary<string, string> leaderboardKeys = new Dictionary<string, string>()
+    {
+        { "0", "12831" },
+        { "1", "12834" },
+        { "2", "12835" },
+        { "3", "12836" },
+        { "4", "12837" },
+        { "5", "12838" },
+        { "6", "12839" },
+        { "7", "12840" },
+        { "8", "12841" },
+        { "9", "12842" },
+        { "10", "12843" },
+    };
+
     public struct RecordData
     {
+        public string nickname;
         public int attempts;
         public int moves;
         public int minutes;
         public int seconds;
-        public static bool operator <(RecordData c1, RecordData c2)
-        {
-            return c1.moves > c2.moves || c1.minutes > c2.minutes || c1.seconds > c2.seconds;
-        }
-        public static bool operator >(RecordData c1, RecordData c2)
-        {
-            return c1.moves < c2.moves || c1.minutes < c2.minutes || c1.seconds < c2.seconds;
-        }
-        public override string ToString()
-        {
-            return $"Best\n {moves} moves\n{minutes:00}m:{seconds:00}s";
-        }
     }
+
+    private Dictionary<string, int> records = new Dictionary<string, int>();
+    private string _nickname;
+
+    public bool isDirty = true;
 
     void Awake()
     {
@@ -32,38 +44,71 @@ public class RecordManager : MonoBehaviour
         else return;
     }
 
-    private Dictionary<TextAsset, RecordData> _records = new Dictionary<TextAsset, RecordData>();
-    
-    public void addRecord(TextAsset level, RecordData record)
+    private void Start()
     {
-        if (_records.Keys.Contains(level))
+        LootLockerSDKManager.StartGuestSession((response) =>
         {
-            if(record > _records[level])
+            if (!response.success)
             {
-                _records[level] = record;
+                Debug.Log("error starting LootLocker session");
+
+                return;
             }
-        }
-        else
+
+            Debug.Log("successfully started LootLocker session");
+        });
+    }
+
+    public void AddRecord(string id, RecordData record)
+    {
+        isDirty = true;
+        LootLockerSDKManager.SubmitScore(_nickname, record.moves, leaderboardKeys[id], (response) =>
         {
-            _records[level] = record;
+            if (response.statusCode == 200)
+                Debug.Log("Successfully submitted the record");
+            else
+                Debug.Log("Error during request: " + response.Error);
+        });
+        SetRecords();
+    }
+
+    public void SetRecords(string nickname)
+    {
+        _nickname = nickname;
+        SetRecords();
+    }
+
+    public void SetRecords()
+    {
+        Debug.Log("Nickname is " + _nickname);
+        int remaining = leaderboardKeys.Keys.Count;
+        foreach (string level in leaderboardKeys.Keys)
+        {
+            LootLockerSDKManager.GetMemberRank(leaderboardKeys[level], _nickname, (response) =>
+            {
+                if (response.statusCode == 200 && response.score != 0)
+                {
+                    records.Add( level, response.score);
+                    Debug.Log("Added " + level + " with " + response.score + " moves");
+                }
+
+                remaining--;
+                Debug.Log(remaining);
+                if (remaining == 0) FinishRecords();
+            });
         }
     }
 
-    public string getRecordString(TextAsset level)
+    private void FinishRecords()
     {
-        if (_records.Keys.Contains(level))
-        {
-            return _records[level].ToString();
-        }
-        return "not attempted";
+        Debug.Log("Finished setting records");
+        isDirty = false;
     }
 
-    public int getAttempts(TextAsset level)
+    public int GetRecordByLevel(string level)
     {
-        if (_records.Keys.Contains(level))
-        {
-            return _records[level].attempts;
-        }
-        return 0;
+        if (records.ContainsKey(level))
+            return records[level] - '0';
+        else return -1;
     }
 }

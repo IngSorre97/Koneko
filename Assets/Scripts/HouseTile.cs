@@ -12,6 +12,8 @@ public class HouseTile : MonoBehaviour
     public int column { get; private set; }
     public bool showing;
 
+    private Hole hole;
+
     [SerializeField] private GameObject transparency;
     
     [SerializeField] private SpriteRenderer sprite;
@@ -32,31 +34,32 @@ public class HouseTile : MonoBehaviour
         {
             case 'O':
                 tileType = TileType.OutOfBounds;
-                sprite.sprite = UIManager.Singleton.outOfBounds;
+                sprite.sprite = SpritesData.Singleton.outOfBounds;
                 break;
             case 'W':
                 tileType = TileType.Wall;
-                sprite.sprite = UIManager.Singleton.wall;
+                sprite.sprite = SpritesData.Singleton.wall;
                 break;
             case 'E':
                 tileType = TileType.Empty;
-                sprite.sprite = UIManager.Singleton.empty;
+                sprite.sprite = SpritesData.Singleton.empty;
                 break;
             case 'C':
                 tileType = TileType.Cat;
-                sprite.sprite = UIManager.Singleton.empty;
+                sprite.sprite = SpritesData.Singleton.empty;
                 Manager.Singleton.SpawnCat(gameObject);
                 grid.spawnTile = gameObject;
                 break;
             case 'M':
                 tileType = TileType.Mouse;
-                sprite.sprite = UIManager.Singleton.empty;
+                sprite.sprite = SpritesData.Singleton.empty;
                 Manager.Singleton.SpawnMouse(gameObject);
                 grid.mouseTiles.Add(gameObject);
                 break;
-            case char ch when (ch >= '1'  && ch <='4'):
+            case char ch when (ch >= '1'  && ch <='9'):
                 tileType = TileType.Hole;
-                sprite.sprite = UIManager.Singleton.hole;
+                hole = new Hole(ch - '0');
+                sprite.sprite = SpritesData.Singleton.Hole(ch - '0');
                 break;
             default:
                 Debug.Log($"Character not found {c}");
@@ -88,7 +91,15 @@ public class HouseTile : MonoBehaviour
     
     public bool CanMoveMouse()
     {
-        return tileType == TileType.Empty || tileType == TileType.Hole;
+        if (tileType == TileType.Empty) return true;
+        if (tileType == TileType.Hole) return hole.CanEnter();
+        return false;
+    }
+
+    public void EnterMouse()
+    {
+        hole.Enter();
+        sprite.sprite = SpritesData.Singleton.Hole(hole.spaceLeft);
     }
     
 }
