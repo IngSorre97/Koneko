@@ -53,13 +53,25 @@ public class HouseTile : MonoBehaviour
             case 'M':
                 tileType = TileType.Mouse;
                 sprite.sprite = SpritesData.Singleton.empty;
-                Manager.Singleton.SpawnMouse(gameObject);
+                Manager.Singleton.SpawnMouse(gameObject, false);
+                grid.mouseTiles.Add(gameObject);
+                break;
+            case 'F':
+                tileType = TileType.Mouse;
+                sprite.sprite = SpritesData.Singleton.empty;
+                Manager.Singleton.SpawnMouse(gameObject, true);
                 grid.mouseTiles.Add(gameObject);
                 break;
             case char ch when (ch >= '1'  && ch <='9'):
                 tileType = TileType.Hole;
-                hole = new Hole(ch - '0');
+                hole = gameObject.AddComponent<Hole>();
+                hole.Set(ch - '0');
                 sprite.sprite = SpritesData.Singleton.Hole(ch - '0');
+                break;
+            case 'B':
+                tileType = TileType.Ball;
+                sprite.sprite = SpritesData.Singleton.empty;
+                Manager.Singleton.SpawnBall(gameObject);
                 break;
             default:
                 Debug.Log($"Character not found {c}");
@@ -86,20 +98,19 @@ public class HouseTile : MonoBehaviour
 
     public bool IsWalkable()
     {
-        return tileType == TileType.Empty || tileType == TileType.Mouse;
+        return tileType == TileType.Empty || tileType == TileType.Mouse || tileType == TileType.Ball;
     }
     
-    public bool CanMoveMouse()
+    public bool CanMoveEntity()
     {
         if (tileType == TileType.Empty) return true;
         if (tileType == TileType.Hole) return hole.CanEnter();
         return false;
     }
 
-    public void EnterMouse()
+    public void EnterHole()
     {
         hole.Enter();
         sprite.sprite = SpritesData.Singleton.Hole(hole.spaceLeft);
     }
-    
 }

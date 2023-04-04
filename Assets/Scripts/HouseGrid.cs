@@ -104,4 +104,31 @@ public class HouseGrid : MonoBehaviour
                 return null;
         }
     }
+
+    public struct TargetData
+    {
+        public HouseTile houseTiletargetTile;
+        public int distance;
+    }
+    public TargetData GetSlipperyTarget(HouseTile houseTile, Movement movement)
+    {
+        int distance = 0;
+        HouseTile nextTile = houseTile;
+        do
+        {
+            houseTile = nextTile;
+            distance++;
+            nextTile = TryMovementBounds(houseTile, movement);
+            if (nextTile.tileType == TileType.Hole && nextTile.CanMoveEntity())
+            {
+                houseTile = nextTile;
+                break;
+            }
+            if (!nextTile.CanMoveEntity())
+                nextTile = null;
+            
+        } while (nextTile != null);
+
+        return new TargetData { houseTiletargetTile = houseTile, distance = distance};
+    }
 }

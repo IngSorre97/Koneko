@@ -6,5 +6,6 @@ public enum TileType
     Cat,
     OutOfBounds,
     Mouse,
-    Hole
+    Hole,
+    Ball
 }

@@ -26,8 +26,11 @@ public class Manager : MonoBehaviour
     public GameObject cat => _cat;
     private int moves;
     [SerializeField] private GameObject mousePrefab;
+    [SerializeField] private GameObject fastMousePrefab;
     private List<GameObject> _mice = new List<GameObject>();
-    
+
+    [SerializeField] private GameObject ballPrefab;
+
     private Controller _controller;
     private GameState _state = GameState.Menu;
     public GameState state => _state;
@@ -109,12 +112,20 @@ public class Manager : MonoBehaviour
         yield return null;
     }
 
-    public void SpawnMouse(GameObject houseTile)
+    public void SpawnMouse(GameObject houseTile, bool isFast)
     {
-        GameObject mouse = Instantiate(mousePrefab, houseTile.transform);
+        GameObject mouse = Instantiate(isFast ? fastMousePrefab : mousePrefab, houseTile.transform);
         mouse.GetComponent<Mouse>().Set(houseTile.GetComponent<HouseTile>());
+        mouse.GetComponent<Mouse>().isSlippery = isFast;
         mouse.name = "Mouse";
         _mice.Add(mouse);
+    }
+
+    public void SpawnBall(GameObject houseTile)
+    {
+        GameObject ball = Instantiate(ballPrefab, houseTile.transform);
+        ball.GetComponent<Ball>().Set(houseTile.GetComponent<HouseTile>());
+        ball.name = "Ball";
     }
 
     public void Move()

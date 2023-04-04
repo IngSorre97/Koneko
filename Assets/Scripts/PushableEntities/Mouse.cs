@@ -4,23 +4,26 @@ using UnityEngine;
 
 public class Mouse : PushableEntity
 {
+    public bool isSlippery;
     public HouseTile _currentTile { get; private set; }
     private Movement _currentMovement;
+    [SerializeField] private AnimationCurve movementCurve;
     [SerializeField] private ParticleSystem holeDust;
 
     public void Set(HouseTile houseTile)
     {
         _currentTile = houseTile;
     }
-    public override void Move(GameObject houseTile, Movement movement)
+    public override void Move(GameObject houseTile, Movement movement, bool redo, int distance)
     {
         _currentMovement = movement;
-        gameObject.GetComponent<Animator>().SetInteger("Movement", (int)_currentMovement);
+        Vector2 animMovement = MovementManager.GetMovementCoords(movement);
+        gameObject.GetComponent<Animator>().SetFloat("MovementX", animMovement.x);
+        gameObject.GetComponent<Animator>().SetFloat("MovementY", animMovement.y);
         _currentTile = houseTile.GetComponent<HouseTile>();
-        StartCoroutine(MoveRoutine(0.25f, transform.position, houseTile.transform.position));
+        StartCoroutine(MoveRoutine(MovementManager.Singleton.mouseDuration * distance, transform.position, houseTile.transform.position, redo));
     }
-
-    private IEnumerator MoveRoutine(float duration, Vector3 start, Vector3 end)
+    private IEnumerator MoveRoutine(float duration, Vector3 start, Vector3 end, bool redo)
     {
         MovementManager.Singleton.MouseMovement(true, this);
         float time = 0;
@@ -29,13 +32,13 @@ public class Mouse : PushableEntity
         {
             time += Time.deltaTime;
             fraction = Mathf.Min(time / duration, 1);
-            transform.position = Vector3.Lerp(start, end, fraction);
+            transform.position = Vector3.Lerp(start, end, redo ? fraction : movementCurve.Evaluate(fraction));
             yield return null;
         }
         if (_currentTile.tileType == TileType.Hole)
         {
             StartCoroutine(particles());
-            _currentTile.EnterMouse();
+            _currentTile.EnterHole();
         }
         else
         {
@@ -48,7 +51,6 @@ public class Mouse : PushableEntity
 
         yield return null;
     }
-
     private IEnumerator particles()
     {
         holeDust.Play();

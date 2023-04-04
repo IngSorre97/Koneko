@@ -41,13 +41,15 @@ public class Cat : PushableEntity
         };
     }
 
-    public override void Move(GameObject houseTile, Movement movement)
+    public override void Move(GameObject houseTile, Movement movement, bool redo, int distance)
     {
         currentTile = houseTile.GetComponent<HouseTile>();
         transform.SetParent(houseTile.transform, true);
         _currentMovement = movement;
-        gameObject.GetComponent<Animator>().SetInteger("Movement", (int) movement);
-        StartCoroutine(MoveRoutine(0.25f, transform.position, houseTile.transform.position));
+        Vector2 animMovement = MovementManager.GetMovementCoords(movement);
+        gameObject.GetComponent<Animator>().SetFloat("MovementX", animMovement.x);
+        gameObject.GetComponent<Animator>().SetFloat("MovementY", animMovement.y);
+        StartCoroutine(MoveRoutine(MovementManager.Singleton.catDuration, transform.position, houseTile.transform.position));
     }
 
     private IEnumerator MoveRoutine(float duration, Vector3 start, Vector3 end)
@@ -79,4 +81,6 @@ public class Cat : PushableEntity
     {
         resetDust.Play();
     }
+
+
 }

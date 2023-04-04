@@ -6,7 +6,7 @@ public class Hole : MonoBehaviour
 {
     public int spaceLeft;
     private int _maxCapacity;
-    public Hole(int capacity)
+    public void Set(int capacity)
     {
         _maxCapacity = capacity;
         spaceLeft = _maxCapacity;

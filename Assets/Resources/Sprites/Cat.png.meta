@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: a9495bd679df03d4dab53b86ce29dd25
+guid: 222a451afc956c64a8663c326be06d16
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -47,7 +47,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 100
+  spritePixelsToUnits: 32
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -70,7 +70,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 1
+    textureCompression: 0
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -113,11 +113,35 @@ TextureImporter:
     overridden: 0
     androidETC2FallbackOverride: 0
     forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 3
+    buildTarget: iPhone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
   spriteSheet:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Mouse_0
+      name: Cat_0
       rect:
         serializedVersion: 2
         x: 0
@@ -131,14 +155,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 7f15afc27b88e9c478414eace5d80312
-      internalID: -1704057519
+      spriteID: f07a9477644eb3a4cb78993f2e9a248a
+      internalID: 2002678331
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mouse_1
+      name: Cat_1
       rect:
         serializedVersion: 2
         x: 32
@@ -152,14 +176,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 51462fb8f9e35d04fb8b6a2b96867add
-      internalID: 1869256860
+      spriteID: 54e4e4fd662ef79439e0bfebce904825
+      internalID: -124620828
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mouse_2
+      name: Cat_2
       rect:
         serializedVersion: 2
         x: 64
@@ -173,14 +197,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ff22293e462a41a439df3f1376367b5f
-      internalID: 655720127
+      spriteID: 068a2857e5d429b48887dcf7a27d1ed6
+      internalID: -916090500
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mouse_3
+      name: Cat_3
       rect:
         serializedVersion: 2
         x: 0
@@ -194,14 +218,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d4191851a2dfed94cb763fbf9af2c2fa
-      internalID: -2126036042
+      spriteID: 86c936a505372c6448832b3f6ea5bbfc
+      internalID: -1770758038
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mouse_4
+      name: Cat_4
       rect:
         serializedVersion: 2
         x: 32
@@ -215,14 +239,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: e72fddd6a2320e64ba2583faaaa1b30a
-      internalID: -6101215
+      spriteID: a62c4937db5e6a14488c13bb17737df9
+      internalID: 1142948250
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mouse_5
+      name: Cat_5
       rect:
         serializedVersion: 2
         x: 64
@@ -236,14 +260,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 100b59c5ae655f645ba72f7fae8b8c2c
-      internalID: 1162136924
+      spriteID: ff60a0cad01bc3541a4cf8b5f30c21ca
+      internalID: 908720036
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mouse_6
+      name: Cat_6
       rect:
         serializedVersion: 2
         x: 0
@@ -257,14 +281,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: ce48d4a72f5ef954d984b15c6974fe45
-      internalID: 1388529721
+      spriteID: f807bb9f0e4b0254fb237a30715af0e1
+      internalID: -1636159345
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mouse_7
+      name: Cat_7
       rect:
         serializedVersion: 2
         x: 32
@@ -278,14 +302,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: aa9a6e9c298193c419d40225167b0c80
-      internalID: -1398094708
+      spriteID: e8dcde3be23a26e43bb74fd48c40074d
+      internalID: 1002298183
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mouse_8
+      name: Cat_8
       rect:
         serializedVersion: 2
         x: 64
@@ -299,14 +323,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 36f1e0e6d0dfb6f418bbba9fe2f9df2b
-      internalID: -894473207
+      spriteID: 080429d40adc11440a4e38d69c0cbe9b
+      internalID: 182539465
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mouse_9
+      name: Cat_9
       rect:
         serializedVersion: 2
         x: 0
@@ -320,14 +344,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: f6303e1df08618b429d4013efe74bcf4
-      internalID: 506070073
+      spriteID: 14a07a85247a5694d8efc7f9205118b9
+      internalID: 342338036
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mouse_10
+      name: Cat_10
       rect:
         serializedVersion: 2
         x: 32
@@ -341,14 +365,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 06fd33c2dcea9dc459b0c03bfd82823c
-      internalID: -702192781
+      spriteID: 8143b86e055288a43b613e4755e359ce
+      internalID: 2027825770
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Mouse_11
+      name: Cat_11
       rect:
         serializedVersion: 2
         x: 64
@@ -362,8 +386,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 211456364cc824640bc0d58ec0e48d40
-      internalID: -399572574
+      spriteID: 3b6962cb86edcf145ae254a965dbe5da
+      internalID: 382926984
       vertices: []
       indices: 
       edges: []
@@ -379,18 +403,18 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Mouse_0: -1704057519
-      Mouse_1: 1869256860
-      Mouse_10: -702192781
-      Mouse_11: -399572574
-      Mouse_2: 655720127
-      Mouse_3: -2126036042
-      Mouse_4: -6101215
-      Mouse_5: 1162136924
-      Mouse_6: 1388529721
-      Mouse_7: -1398094708
-      Mouse_8: -894473207
-      Mouse_9: 506070073
+      Cat_0: 2002678331
+      Cat_1: -124620828
+      Cat_10: 2027825770
+      Cat_11: 382926984
+      Cat_2: -916090500
+      Cat_3: -1770758038
+      Cat_4: 1142948250
+      Cat_5: 908720036
+      Cat_6: -1636159345
+      Cat_7: 1002298183
+      Cat_8: 182539465
+      Cat_9: 342338036
   spritePackingTag: 
   pSDRemoveMatte: 0
   pSDShowRemoveMatteOption: 0

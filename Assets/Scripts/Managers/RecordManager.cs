@@ -9,6 +9,12 @@ public class RecordManager : MonoBehaviour
 {
     public static RecordManager Singleton;
 
+    private Dictionary<int, List<string>> pageSwitch = new Dictionary<int, List<string>>()
+    {
+        { 0, new List<string>() },
+        { 1, new List<string>() }
+    };
+
     private Dictionary<string, string> leaderboardKeys = new Dictionary<string, string>()
     {
         { "0", "12831" },
@@ -36,7 +42,7 @@ public class RecordManager : MonoBehaviour
     private Dictionary<string, int> records = new Dictionary<string, int>();
     private string _nickname;
 
-    public bool isDirty = true;
+    [HideInInspector] public bool isDirty = true;
 
     void Awake()
     {
@@ -88,12 +94,13 @@ public class RecordManager : MonoBehaviour
             {
                 if (response.statusCode == 200 && response.score != 0)
                 {
-                    records.Add( level, response.score);
-                    Debug.Log("Added " + level + " with " + response.score + " moves");
+                    if (records.ContainsKey(level))
+                        records[level] = Mathf.Min(response.score, records[level]);
+                    else 
+                        records.Add( level, response.score);
                 }
 
                 remaining--;
-                Debug.Log(remaining);
                 if (remaining == 0) FinishRecords();
             });
         }
