@@ -37,7 +37,7 @@ public class Ball : PushableEntity
         if (_currentTile.tileType == TileType.Hole)
         {
             StartCoroutine(particles());
-            _currentTile.EnterHole();
+            _currentTile.EnterHole(false);
         }
         else
         {

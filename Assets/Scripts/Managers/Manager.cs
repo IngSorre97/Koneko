@@ -25,8 +25,9 @@ public class Manager : MonoBehaviour
     private GameObject _cat;
     public GameObject cat => _cat;
     private int moves;
-    [SerializeField] private GameObject mousePrefab;
-    [SerializeField] private GameObject fastMousePrefab;
+    [SerializeField] private GameObject basicMouse;
+    [SerializeField] private GameObject fastMouse;
+    [SerializeField] private GameObject heavyMouse;
     private List<GameObject> _mice = new List<GameObject>();
 
     [SerializeField] private GameObject ballPrefab;
@@ -34,9 +35,8 @@ public class Manager : MonoBehaviour
     private Controller _controller;
     private GameState _state = GameState.Menu;
     public GameState state => _state;
-    public UIManager.LevelFile _currentLevel = null;
-
-    
+    public Level _currentLevel = null;
+    public TutorialPopUp tutorial = null;
 
     void Start()
     {
@@ -47,7 +47,7 @@ public class Manager : MonoBehaviour
         else UIManager.Singleton.StartGame();
     }
 
-    public void SelectedLevel(UIManager.LevelFile level)
+    public void SelectedLevel(Level level)
     {
         ClearGame();
         UIManager.Singleton.Reset(false);
@@ -56,6 +56,8 @@ public class Manager : MonoBehaviour
     }
     private void ClearGame()
     {
+        if (tutorial != null) Destroy(tutorial);
+        tutorial = null;
         
         Destroy(grid);
         _mice.Clear();
@@ -70,12 +72,12 @@ public class Manager : MonoBehaviour
         return moves;
     }
 
-    private void StartGrid(UIManager.LevelFile level, bool reset)
+    private void StartGrid(Level level, bool reset)
     {
         grid = Instantiate(gridPrefab);
         HouseGrid houseGrid = grid.GetComponent<HouseGrid>();
         if (houseGrid == null) return;
-        houseGrid.ParseFile(level.level, reset);
+        houseGrid.ParseFile(level.levelFile, reset);
     }
 
     public void FinishGrid()
@@ -112,11 +114,26 @@ public class Manager : MonoBehaviour
         yield return null;
     }
 
-    public void SpawnMouse(GameObject houseTile, bool isFast)
+    public void SpawnMouse(GameObject houseTile, MouseType mouseType)
     {
-        GameObject mouse = Instantiate(isFast ? fastMousePrefab : mousePrefab, houseTile.transform);
+        GameObject mousePrefab;
+        switch (mouseType)
+        {
+            case MouseType.Basic:
+                mousePrefab = basicMouse;
+                break;
+            case MouseType.Fast:
+                mousePrefab = fastMouse;
+                break;
+            case MouseType.Heavy:
+                mousePrefab = heavyMouse;
+                break;
+            default:
+                mousePrefab = basicMouse;
+                break;
+        }
+        GameObject mouse = Instantiate(mousePrefab, houseTile.transform);
         mouse.GetComponent<Mouse>().Set(houseTile.GetComponent<HouseTile>());
-        mouse.GetComponent<Mouse>().isSlippery = isFast;
         mouse.name = "Mouse";
         _mice.Add(mouse);
     }
@@ -171,7 +188,7 @@ public class Manager : MonoBehaviour
 
     public void OnResetClicked()
     {
-        if (_currentLevel == null) return;
+        if (_currentLevel == null || tutorial != null) return;
         UIManager.Singleton.Reset(false);
         Destroy(grid);
         _mice.Clear();
@@ -200,6 +217,13 @@ public class Manager : MonoBehaviour
         if (_currentLevel == null) return;
         float size = mainCamera.GetComponent<Camera>().orthographicSize;
         mainCamera.GetComponent<Camera>().orthographicSize = Mathf.Min(maxZoom, size + 1);
+    }
+
+    public bool CanPlay()
+    {
+        if (state != GameState.Playing) return false;
+        if (tutorial != null) return false;
+        return true;
     }
     
 }

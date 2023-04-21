@@ -5,6 +5,7 @@ using UnityEngine;
 public class Mouse : PushableEntity
 {
     public bool isSlippery;
+    public bool isHeavy;
     public HouseTile _currentTile { get; private set; }
     private Movement _currentMovement;
     [SerializeField] private AnimationCurve movementCurve;
@@ -38,7 +39,7 @@ public class Mouse : PushableEntity
         if (_currentTile.tileType == TileType.Hole)
         {
             StartCoroutine(particles());
-            _currentTile.EnterHole();
+            _currentTile.EnterHole(isHeavy);
         }
         else
         {

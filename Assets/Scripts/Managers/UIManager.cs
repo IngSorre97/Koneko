@@ -1,28 +1,14 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using Enums;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UI;
-using Random = UnityEngine.Random;
 using Object = UnityEngine.Object;
 
 public class UIManager : MonoBehaviour
 {
-    public class LevelFile
-    {
-        public string name;
-        public TextAsset level;
-        public int threeStars;
-        public int twoStars;
-    }
-
     public static UIManager Singleton;
+    public bool doNotShowTutorial = false;
 
     [SerializeField] private TMP_InputField nicknameIF;
     public string nickname;
@@ -39,9 +25,6 @@ public class UIManager : MonoBehaviour
     [SerializeField] private GameObject levelSelectionScreen;
     [SerializeField] private GameObject creditsScreen;
     
-    
-    
-    
     [SerializeField] private Transform levelsContent;
     [SerializeField] private GameObject placeholderPrefab;
 
@@ -56,21 +39,23 @@ public class UIManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI victoryMoves;
     [SerializeField] private TextMeshProUGUI victoryTime;
     [SerializeField] private GameObject victoryPanel;
+    [SerializeField] private GameObject tutorialPanel;
     [SerializeField] private GameObject bottomButtons;
 
     private int _maxPages;
     private int _currentPage;
     private int _currentLevel;
     public int _currentID => _currentLevel;
-    private List<List<LevelFile>> _levels = null;
-    private Dictionary<LevelFile, Placeholder> _levelPlaceholders = new Dictionary<LevelFile, Placeholder>();
+    private List<List<Level>> _levels = null;
+    private Dictionary<Level, Placeholder> _levelPlaceholders = new Dictionary<Level, Placeholder>();
     private Coroutine timeCoroutine;
-    
+
     void Awake()
     {
         if (Singleton == null) Singleton = this;
         else return;
         TurnOffPanels();
+
     }
 
     public void StartGame()
@@ -87,6 +72,7 @@ public class UIManager : MonoBehaviour
         countersPanel.SetActive(false);
         bottomButtons.SetActive(false);
         victoryPanel.SetActive(false);
+        tutorialPanel.SetActive(false);
     }
 
     public void UpdateState(GameState state)
@@ -95,11 +81,12 @@ public class UIManager : MonoBehaviour
         switch (state)
         {
             case GameState.Menu:
-                    menuPanel.SetActive(true);
-                    StartCoroutine(LoadLevels(_currentPage));
+                menuPanel.SetActive(true);
+                StartCoroutine(LoadLevels(_currentPage));
                 break;
             case GameState.Playing:
                 countersPanel.SetActive(true);
+                tutorialPanel.SetActive(true);
                 bottomButtons.SetActive(true);
                 levelName.text = Manager.Singleton._currentLevel.name;
                 break;
@@ -136,6 +123,8 @@ public class UIManager : MonoBehaviour
     public void OnLevelClicked(Placeholder placeholder)
     {
         Manager.Singleton.SelectedLevel(placeholder.level);
+        if (placeholder.level.tutorial != Tutorials.None && !doNotShowTutorial)
+            Instantiate(TutorialManager.Singleton.GetTutorial(placeholder.level.tutorial), tutorialPanel.transform);
         menuPanel.SetActive(false);
         levelSelectionScreen.SetActive(false);
         _currentLevel = placeholder.index;
@@ -182,13 +171,13 @@ public class UIManager : MonoBehaviour
             Destroy(child.gameObject);
 
         int counter = 0 +index*11; //TODO DA CAMBIARE
-        foreach (LevelFile level in _levels[index])
+        foreach (Level level in _levels[index])
         {
             GameObject placeholder = Instantiate(placeholderPrefab, levelsContent);
 
             placeholder.GetComponent<Placeholder>().index = counter;
             placeholder.GetComponent<Placeholder>().level = level;
-            placeholder.GetComponent<Placeholder>().levelName.text = level.name;
+            placeholder.GetComponent<Placeholder>().levelName.text = level.menuName;
 
             int record = RecordManager.Singleton.GetRecordByLevel(counter.ToString());
             if (record != -1)
@@ -216,25 +205,13 @@ public class UIManager : MonoBehaviour
             yield return new WaitForSeconds(0.25f);
 
         int current = 0;
-        _levels = new List<List<LevelFile>>();
+        _levels = new List<List<Level>>();
         foreach(string page in levelsPages)
         {
-            _levels.Add(new List<LevelFile>());
-            foreach (Object level in Resources.LoadAll("Levels/" + page + "/"))
+            _levels.Add(new List<Level>());
+            foreach (Object level in Resources.LoadAll<Level>("Levels/" + page + "/"))
             {
-                string[] levelHeader = level.ToString().Split("\n")[0].Split(" ");
-                LevelFile levelFile = new LevelFile();
-                levelFile.name = level.name;
-                levelFile.level = (TextAsset) level;
-                if (levelHeader.Length != 4)
-                    Debug.LogWarning("Level " + level.name + " is not correctly formatted!");
-                else
-                {
-                    levelFile.twoStars = Int32.Parse(levelHeader[3]);
-                    levelFile.threeStars = Int32.Parse(levelHeader[2]);
-                }
-
-                _levels[current].Add(levelFile);
+                _levels[current].Add(level as Level);
             }
             current++;
         }

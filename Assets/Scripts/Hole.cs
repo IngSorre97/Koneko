@@ -12,13 +12,14 @@ public class Hole : MonoBehaviour
         spaceLeft = _maxCapacity;
     }
 
-    public bool CanEnter()
+    public bool CanEnter(bool isHeavy)
     {
-        return spaceLeft > 0;
+        
+        return spaceLeft > (isHeavy ? 1 : 0);
     }
 
-    public void Enter()
+    public void Enter(bool isHeavy)
     {
-        spaceLeft--;
+        spaceLeft = spaceLeft - (isHeavy ? 2 : 1);
     }
 }

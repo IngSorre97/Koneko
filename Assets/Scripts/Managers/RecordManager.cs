@@ -67,6 +67,7 @@ public class RecordManager : MonoBehaviour
 
     public void AddRecord(string id, RecordData record)
     {
+        if (!leaderboardKeys.Keys.Contains(id)) return;
         isDirty = true;
         LootLockerSDKManager.SubmitScore(_nickname, record.moves, leaderboardKeys[id], (response) =>
         {
@@ -115,7 +116,7 @@ public class RecordManager : MonoBehaviour
     public int GetRecordByLevel(string level)
     {
         if (records.ContainsKey(level))
-            return records[level] - '0';
+            return records[level];
         else return -1;
     }
 }

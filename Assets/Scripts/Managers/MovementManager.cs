@@ -38,7 +38,7 @@ public class MovementManager : MonoBehaviour
 
     public void AskMovement(Movement askedMovement, MovementButton button)
     {
-        if (Manager.Singleton.state != Enums.GameState.Playing) return;
+        if (!Manager.Singleton.CanMove()) return;
 
         if (storedMovement == Movement.None)
         {
@@ -77,14 +77,14 @@ public class MovementManager : MonoBehaviour
                 GameObject mouse = targetTile.transform.Find("Mouse").gameObject;
                 HouseTile mouseTargetTile = grid.TryMovementBounds(targetTile, movement);
                 if (!mouseTargetTile) return false;
-                if (!mouseTargetTile.CanMoveEntity()) return false;
+                if (!mouseTargetTile.CanMoveEntity(mouse.GetComponent<Mouse>().isHeavy)) return false;
                 if (mouse.GetComponent<Mouse>().isSlippery)
                 {
-                    HouseGrid.TargetData targetData = grid.GetSlipperyTarget(mouseTargetTile, movement);
+                    HouseGrid.TargetData targetData = grid.GetSlipperyTarget(mouseTargetTile, movement, mouse.GetComponent<Mouse>().isHeavy);
                     mouse.GetComponent<Mouse>().Move(targetData.houseTiletargetTile.gameObject, movement, redo, targetData.distance);
                 } else
                     mouse.GetComponent<Mouse>().Move(mouseTargetTile.gameObject, movement, redo, 1);
-                
+
                 targetTile.tileType = TileType.Cat;
                 cat.currentTile.tileType = TileType.Empty;
                 cat.Move(targetTile.gameObject, movement, redo, 1);
@@ -97,7 +97,7 @@ public class MovementManager : MonoBehaviour
                 GameObject ball = targetTile.transform.Find("Ball").gameObject;
                 HouseTile ballTargetTile = grid.TryMovementBounds(targetTile, movement);
                 if (!ballTargetTile) return false;
-                if (!ballTargetTile.CanMoveEntity()) return false;
+                if (!ballTargetTile.CanMoveEntity(false)) return false;
                 ball.GetComponent<Ball>().Move(ballTargetTile.gameObject, movement, redo, 1);
                 targetTile.tileType = TileType.Cat;
                 cat.currentTile.tileType = TileType.Empty;

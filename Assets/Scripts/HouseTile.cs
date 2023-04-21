@@ -53,13 +53,19 @@ public class HouseTile : MonoBehaviour
             case 'M':
                 tileType = TileType.Mouse;
                 sprite.sprite = SpritesData.Singleton.empty;
-                Manager.Singleton.SpawnMouse(gameObject, false);
+                Manager.Singleton.SpawnMouse(gameObject, MouseType.Basic);
                 grid.mouseTiles.Add(gameObject);
                 break;
             case 'F':
                 tileType = TileType.Mouse;
                 sprite.sprite = SpritesData.Singleton.empty;
-                Manager.Singleton.SpawnMouse(gameObject, true);
+                Manager.Singleton.SpawnMouse(gameObject, MouseType.Fast);
+                grid.mouseTiles.Add(gameObject);
+                break;
+            case 'H':
+                tileType = TileType.Mouse;
+                sprite.sprite = SpritesData.Singleton.empty;
+                Manager.Singleton.SpawnMouse(gameObject, MouseType.Heavy);
                 grid.mouseTiles.Add(gameObject);
                 break;
             case char ch when (ch >= '1'  && ch <='9'):
@@ -101,16 +107,16 @@ public class HouseTile : MonoBehaviour
         return tileType == TileType.Empty || tileType == TileType.Mouse || tileType == TileType.Ball;
     }
     
-    public bool CanMoveEntity()
+    public bool CanMoveEntity(bool isHeavy)
     {
         if (tileType == TileType.Empty) return true;
-        if (tileType == TileType.Hole) return hole.CanEnter();
+        if (tileType == TileType.Hole) return hole.CanEnter(isHeavy);
         return false;
     }
 
-    public void EnterHole()
+    public void EnterHole(bool isHeavy)
     {
-        hole.Enter();
+        hole.Enter(isHeavy);
         sprite.sprite = SpritesData.Singleton.Hole(hole.spaceLeft);
     }
 }

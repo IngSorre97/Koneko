@@ -8,7 +8,7 @@ public class Placeholder : MonoBehaviour
 {
     public TextMeshProUGUI levelName;
     public Image stars;
-    public UIManager.LevelFile level;
+    public Level level;
     public int index;
 
     public void OnClicked()

@@ -110,7 +110,7 @@ public class HouseGrid : MonoBehaviour
         public HouseTile houseTiletargetTile;
         public int distance;
     }
-    public TargetData GetSlipperyTarget(HouseTile houseTile, Movement movement)
+    public TargetData GetSlipperyTarget(HouseTile houseTile, Movement movement, bool isHeavy)
     {
         int distance = 0;
         HouseTile nextTile = houseTile;
@@ -119,12 +119,12 @@ public class HouseGrid : MonoBehaviour
             houseTile = nextTile;
             distance++;
             nextTile = TryMovementBounds(houseTile, movement);
-            if (nextTile.tileType == TileType.Hole && nextTile.CanMoveEntity())
+            if (nextTile.tileType == TileType.Hole && nextTile.CanMoveEntity(isHeavy))
             {
                 houseTile = nextTile;
                 break;
             }
-            if (!nextTile.CanMoveEntity())
+            if (!nextTile.CanMoveEntity(isHeavy))
                 nextTile = null;
             
         } while (nextTile != null);
